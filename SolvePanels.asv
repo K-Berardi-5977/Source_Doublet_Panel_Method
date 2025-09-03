@@ -3,13 +3,6 @@ function [lambda, Vt, Cp, Nuemann_check] = SolvePanels(I, J, U, beta, numPan, S,
 %==========Build Influence Coefficient Matrix for Sources & Doublets==========%
 A = zeros(numPan, numPan); %variable to store Integral terms for linear system of equations
 
-%I(i,j) is currently the influence coefficient based on the normal
-%velocity contribution at the ith control point due to the jth source --
-%I(i,j) needs to become the influence coefficient for the POTENTIAL of the
-%ith panel due to the jth source (NOTE: THE POTENTIAL DUE TO A DOUBLET IS
-%ALSO THE NORMAL DERIVATIVE OF THE POTENTIAL DUE TO A POINT SOURCE, so
-%I(i,j) could be the influence coefficient for the doublets as well if
-%desired
 for i = 1:numPan
     for j = 1:numPan
         if (i == j)
@@ -31,7 +24,7 @@ for i = 1:numPan %iterate over the ith panel
 end
 
 %========== Solve for Panel Strengths ==========%
-% lambda = A\b; %SOLVE LINEAR SYSTEM OF EQUATIONS
+lambda = A\b; %SOLVE LINEAR SYSTEM OF EQUATIONS
 
 lambda_ds = lambda(:).*S(:); %vector contraining the strengths of each panel
 Nuemann_check = sum(lambda_ds); %checking that the Neumann boundary condition is satisfied (i.e., no penetration into or out of the surface)

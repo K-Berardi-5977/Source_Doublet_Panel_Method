@@ -15,10 +15,10 @@ def_foil = 'Use .dat File'; %variable to control how profile is generated
 
 
 %======= Determine Normal & Tangentential Infuence Coefficients =======%
-[I, J] = SPM_InfluenceCoeff(XC, YC, XB, YB, phiR, S, numPan); %function solving for influence coefficients
+[I, J] = SDPM_InfluenceCoeff(XC, YC, XB, YB, phiR, S, numPan); %function solving for influence coefficients
 
 %========== Solve Linear System of Equations ==========%
-[lambda, Vt, Cp, Neumann_check] = SolveSourcePanels(I, J, U, betaR, numPan, S, rho);
+[lambda, Vt, Cp, Neumann_check] = SolvePanels(I, J, U, betaR, numPan, S, rho);
 
 %========== Plot Streamlines ==========%
 [Nxx , Nyy, Vxy, theta_pj, psi, THETA, Cpxy_mask] = PM_streamlines(XC, YC, XB, YB, phiR, S, lambda, U, alphaD, Cp, numPan);
