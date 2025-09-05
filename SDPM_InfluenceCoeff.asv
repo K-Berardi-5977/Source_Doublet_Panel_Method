@@ -1,9 +1,72 @@
   function [A, B] = SDPM_InfluenceCoeff(xi, yi, Xj, Yj, phi, S, numPan)
-numPan = length(xi); %iteration variable
-% I = zeros(numPan, numPan); %Source Potential Influence Coefficient
-% J = zeros(numPan, numPan); 
+%%
+  %{
+%========== READ ME FIRST ==========%
+xi = x coordinate for collocation point of ith panel
+yi = y coordinate for collocation point of the ith panel
+Xj = x-coordinate of starting boundary point for jth panel (X_j+1 would be
+the end point)
+Yj = y-coordinate of starting boundary point for jth panel (Y_j+1 would be
+the end point)
+phi =  matrix storing the angles of each panel with respect to the positive
+x-axis [radians]
+S = matrix containing length of each panel (used to integrate over jth
+panel)
+numPan =  number of panels 
+%}
 
-A = 
+%% ========== CONVERT COORDINATES TO PANEL COORDINATES ==========%
+%{ Solution based on "Low Speed Aerodynamics" by Katz and Plotkin requires
+%conversion of global x and y coordinates into local panel coordinates for
+%each panel -- the goal of this is to simplify the integrasion by making
+%the panel "flat" which gives a constant "y" value for a distance to a
+%given point where the potential is analyzed - and the variable of
+%integration becomes the new X_j+1 - Xj (which is equivalent in magnitude
+%to Sj for the jth panel. 
+%}
+
+Xo = zeros(numPan); %matrix to store panel length after coordinate transoformation (should equal equivalent S-value, renamed only for clarity)
+
+for f = 1:numPan-1
+    for g = 1:numPan-1
+        Xt = xi(i) - Xj(j);
+        Yt = yi(i) - Yj(j);
+        Xt2 = Xj(j+1) - Xj(j);
+        Yt2 = Y(j+1) - Yj(j);
+        
+        X = Xt*cos(phi(j))+Yt*sin(phi(j));
+        X2 = Xt2*cos(phi(j)) + Yt2*sin(phi(j));
+        Y = Yt*cos(phi(j))-Xt*sin(phi(j));
+        Y2 = 0;
+        
+        Xo(j) = X2; 
+
+        R1 = hypot(X,Y);
+        R2 = hypot((X2-X), Y);
+
+        theta1 = atan2(Y,X);
+        theta2 = atan2(Y, (X2-X))
+
+        if i == j 
+            A(i,j) = 0.5; %doublet self influence coefficient 
+        else
+            A(i,j) = -(1/(2*pi))*(theta2-theta1);
+
+    end
+end
+%%
+
+
+    
+%% ========== COMPUTE INFLUENCE COEFFICIENTS ==========%
+A = zeros(numPan, numPan); %Doublet Potential Influence Coefficient
+B = zeros(numPan, numPan); %Source Potential Influence Coefficient
+
+for i = 1:numPan
+    for j = 1:numPan
+
+    end
+end
 % % xi & yi - vectors containing the x and y coordinates of the control
 % % points
 % 

@@ -1,34 +1,76 @@
-function [lambda, Vt, Cp, Nuemann_check] = SolvePanels(I, J, U, beta, numPan, S, rho)
+function [lambda, Vt, Cp, Nuemann_check] = SolvePanels(xi, yi, Xj, Yj, phi, U, beta, numPan, S, rho)
 
-%==========Build Influence Coefficient Matrix for Sources & Doublets==========%
-A = zeros(numPan, numPan); %variable to store Integral terms for linear system of equations
-
-%I(i,j) is currently the influence coefficient based on the normal
-%velocity contribution at the ith control point due to the jth source --
-%I(i,j) needs to become the influence coefficient for the POTENTIAL of the
-%ith panel due to the jth source (NOTE: THE POTENTIAL DUE TO A DOUBLET IS
-%ALSO THE NORMAL DERIVATIVE OF THE POTENTIAL DUE TO A POINT SOURCE, so
-%I(i,j) could be the influence coefficient for the doublets as well if
-%desired
-for i = 1:numPan
-    for j = 1:numPan
-        if (i == j)
-            A(i,j) = pi; %normal velocity self-influence of the ith panel
-        else
-            A(i,j) = I(i,j); %assign coefficient value
-        end
-    end
-end
-
-%========== Define Right - Hand Side Terms ==========%
+%========== PRESCRIBE SOURCE STRENGTHS ==========%
 b = zeros(numPan,1); %normal free-stream terms vector (right-hand side of equation)
 lambda = zeros(numpan,1); %source strength vector, will store prescribed source strengths
 
 for i = 1:numPan %iterate over the ith panel
-    b(i) = U*2*pi*cos(beta(i)); %compute normal free-stream terms at the ith control point
-    lambda(ii) = b(i); %prescribing the source strength at the collocation point in accordance with solution to Dirichilet BC for combined
+    b(i) = U*(cos(alpha)*sin(phi(i)) - sin(alpha)*cos(phi(i))); %compute normal free-stream terms at the ith control point
+    lambda(i) = b(i); %prescribing the source strength at the collocation point in accordance with solution to Dirichilet BC for combined
                          %source doublet panel method
 end
+
+%%
+  %{
+%========== READ ME FIRST ==========%
+xi = x coordinate for collocation point of ith panel
+yi = y coordinate for collocation point of the ith panel
+Xj = x-coordinate of starting boundary point for jth panel (X_j+1 would be
+the end point)
+Yj = y-coordinate of starting boundary point for jth panel (Y_j+1 would be
+the end point)
+phi =  matrix storing the angles of each panel with respect to the positive
+x-axis [radians]
+S = matrix containing length of each panel (used to integrate over jth
+panel)
+numPan =  number of panels 
+%}
+
+%% ========== CONVERT COORDINATES TO PANEL COORDINATES ==========%
+%{ Solution based on "Low Speed Aerodynamics" by Katz and Plotkin requires
+%conversion of global x and y coordinates into local panel coordinates for
+%each panel -- the goal of this is to simplify the integrasion by making
+%the panel "flat" which gives a constant "y" value for a distance to a
+%given point where the potential is analyzed - and the variable of
+%integration becomes the new X_j+1 - Xj (which is equivalent in magnitude
+%to Sj for the jth panel. 
+%}
+%% ========== COMPUTE INFLUENCE COEFFICIENTS ==========%
+A = zeros(numPan, numPan); %Doublet Potential Influence Coefficient
+B = zeros(numPan, numPan); %Source Potential Influence Coefficient
+
+Xo = zeros(numPan); %matrix to store panel length after coordinate transoformation (should equal equivalent S-value, renamed only for clarity)
+
+for f = 1:numPan-1
+    for g = 1:numPan-1
+        % ===== Convert to Local Panel Coordinates ===== %
+        Xt = xi(i) - Xj(j);
+        Yt = yi(i) - Yj(j);
+        Xt2 = Xj(j+1) - Xj(j);
+        Yt2 = Y(j+1) - Yj(j);
+        
+        X = Xt*cos(phi(j))+Yt*sin(phi(j));
+        X2 = Xt2*cos(phi(j)) + Yt2*sin(phi(j));
+        Y = Yt*cos(phi(j))-Xt*sin(phi(j));
+        Y2 = 0;
+        
+        Xo(j) = X2; 
+
+        R1 = hypot(X,Y);
+        R2 = hypot((X2-X), Y);
+
+        theta1 = atan2(Y,X);
+        theta2 = atan2(Y, (X2-X))
+        % ===== COMPUTE INFLUENCE COEFFICIENTS =====%
+        if i == j 
+            A(i,j) = 0.5; %doublet self influence coefficient
+            B(i,j) = (lambda(j)/pi)*(X*log(R1)); %source self influence coefficient
+        else
+            A(i,j) = -(1/(2*pi))*(theta2-theta1); % doublet influence coefficient of the jth panel doublet on the ith control point
+            B(i,j) = (lambda(j)/(2*pi))*(X*log(R1) - (X-X2)*log(R2) + Z*(theta2-theta1)); %influence of the jth panel source on the ith control point
+    end
+end
+
 
 %========== Solve for Panel Strengths ==========%
 % lambda = A\b; %SOLVE LINEAR SYSTEM OF EQUATIONS
@@ -37,7 +79,6 @@ lambda_ds = lambda(:).*S(:); %vector contraining the strengths of each panel
 Nuemann_check = sum(lambda_ds); %checking that the Neumann boundary condition is satisfied (i.e., no penetration into or out of the surface)
 
 %========== Surface Velocity and Aerodynamic Loads ==========%
-
 Vt = zeros(numPan,1); %Panel tangential velocity vector
 Cp = zeros(numPan, 1); %Panel Pressure coefficient vector
                                                                

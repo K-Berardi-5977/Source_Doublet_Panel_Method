@@ -1,17 +1,8 @@
   function [A, B] = SDPM_InfluenceCoeff(xi, yi, Xj, Yj, phi, S, numPan)
-numPan = length(xi); %iteration variable
-% I = zeros(numPan, numPan); %Source Potential Influence Coefficient
-% J = zeros(numPan, numPan); 
 
-A = zeros(numPan, numPan); %Doublet Potential Influence Coefficient
-B = zeros(numPan, numPan); %Source Potential Influence Coefficient
+    
 
-for i = 1:numPan
-    for j = 1:numPan
-        if i == j 
-            A(i,j) = 0.5; %doublet self influence coefficient 
-    end
-end
+
 % % xi & yi - vectors containing the x and y coordinates of the control
 % % points
 % 
