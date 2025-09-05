@@ -25,8 +25,8 @@ b = zeros(numPan,1); %normal free-stream terms vector (right-hand side of equati
 lambda = zeros(numpan,1); %source strength vector, will store prescribed source strengths
 
 for i = 1:numPan %iterate over the ith panel
-    b(i) = -U*2*pi*cos(beta(i)); %compute normal free-stream terms at the ith control point
-    lambda(ii) = -b(i); %prescribing the source strength at the collocation point in accordance with solution to Dirichilet BC for combined
+    b(i) = U*2*pi*cos(beta(i)); %compute normal free-stream terms at the ith control point
+    lambda(ii) = b(i); %prescribing the source strength at the collocation point in accordance with solution to Dirichilet BC for combined
                          %source doublet panel method
 end
 
@@ -40,7 +40,7 @@ Nuemann_check = sum(lambda_ds); %checking that the Neumann boundary condition is
 
 Vt = zeros(numPan,1); %Panel tangential velocity vector
 Cp = zeros(numPan, 1); %Panel Pressure coefficient vector
-
+                                                               
 for i = 1:numPan
     source_terms = 0;
     for j = 1:numPan
