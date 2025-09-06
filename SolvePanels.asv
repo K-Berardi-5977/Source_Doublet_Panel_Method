@@ -1,65 +1,115 @@
-function [lambda, Vt, Cp, Nuemann_check] = SolvePanels(I, J, U, beta, numPan, S, rho)
+function [lambda, mu, dphi_ds, Cp, Nuemann_check, A, B, pot, RHS, DL] = SolvePanels(xi, yi, Xj, Yj, S, phi, U, beta, numPan, rho, alpha)
+mu = zeros(numPan,1); %matrix to store doublet strengths
+% ========== PRESCRIBE SOURCE STRENGTHS ========== %
+b = zeros(numPan,1); %normal free-stream terms vector (right-hand side of equation)
+lambda = zeros(numPan,1); %source strength vector, will store prescribed source strengths
 
-%==========Build Influence Coefficient Matrix for Sources & Doublets==========%
-A = zeros(numPan, numPan); %variable to store Integral terms for linear system of equations
+for i = 1:numPan %iterate over the ith panel
+    b(i) = U*(cos(alpha)*sin(beta(i) - sin(alpha)*cos(beta(i)))); %compute normal free-stream terms at the ith control point
+    lambda(i) = b(i); %prescribing the source strength at the collocation point in accordance with solution to Dirichilet BC for combined
+                         %source doublet panel method
+end
+
+% ========== BUILD COORDINATES AND COMPUTE INFLUENCE COEFFICIENTS ========== %
+A = zeros(numPan, numPan+1); %Doublet Potential Influence coefficient Matrix
+B = zeros(numPan, numPan); %Source Potential Influence Coefficient Matrix
 
 for i = 1:numPan
     for j = 1:numPan
+
+        % ===== Perform Transformation into Local jth Panel Coordinates ===== %
+        Xt1 = xi(i) - Xj(j);
+        Yt1 = yi(i) - Yj(j);
+        Xt2 = Xj(j+1) - Xj(j);
+        Yt2 = Yj(j+1) - Yj(j);
+
+        Xo = Xt1*cos(phi(j)) + Yt1*sin(phi(j));
+        Yo = Yt1*cos(phi(j)) - Xt1*sin(phi(j))-1E-2;
+        Xf = Xt2*cos(phi(j)) + Yt2*sin(phi(j));
+        Yf = 0; 
+
+        if i == 1
+            DL(j) = Xf;
+        end
+
+        R1 = sqrt(Xo^2 + Yo^2);
+        R2 = sqrt((Xo-Xf)^2 + Yo^2);
+
+        theta_1 = atan2(Yo, Xo);
+        theta_2 = atan2(Yo, (Xo-Xf));
+
         if (i == j)
-            A(i,j) = pi; %normal velocity self-influence of the ith panel
-        else
-            A(i,j) = I(i,j); %assign coefficient value
+            B(i,j) = (lambda(j)/pi)*(Xo*log(R1));
+            A(i,j) = 0.5; %ith panel doublet self-influence coefficient
+        elseif (i ~= j)
+             B(i,j) = (lambda(j)/(2*pi))*(Xo*log(R1) - (Xo-Xf)*log(R2) + Yo*(theta_2-theta_1)); %influence coefficient of jth source on the ith control point
+             A(i,j) = (1/(2*pi))*(theta_2-theta_1); %influence Coefficient of the jth doublet on the ith control point
+             
+        end
+    end
+    XW = xi(i)-Xj(numPan);
+    YW = yi(i)-Yj(numPan);
+    theta_w = -atan(YW/XW);
+
+    A(i,numPan+1) = -(1/(2*pi))*theta_w;
+end
+
+
+for i = 1:numPan
+    for j = 1:numPan
+        if (j ~= 1) && (j ~= numPan)
+            A(i,j) = A(i,j);
+        elseif j == 1
+            A(i,j) = A(i,j)-A(i,numPan+1);
+        elseif j == numPan
+            A(i,j) = A(i,numPan)+A(i,numPan+1);
         end
     end
 end
 
-%========== Define Right - Hand Side Terms ==========%
-b = zeros(numPan,1); %normal free-stream terms vector (right-hand side of equation)
-lambda = zeros(numpan,1); %source strength vector, will store prescribed source strengths
+A(:, end) = [];
+size(A)
+RHS = sum(B, 2);
+size(RHS)
 
-for i = 1:numPan %iterate over the ith panel
-    b(i) = -U*2*pi*cos(beta(i)); %compute normal free-stream terms at the ith control point
-    lambda(ii) = -b(i); %prescribing the source strength at the collocation point in accordance with solution to Dirichilet BC for combined
-                         %source doublet panel method
+mu = -RHS\A; %solve for doublet strengths
+pot = zeros(numPan,1);
+
+mu_ds = mu(:).*S(:);
+Circulation = sum(mu_ds)
+lift = rho*U*Circulation;
+
+
+
+
+for i = 1:numPan
+    pot(i) = xi(i)*cos(alpha) + yi(i)*sin(alpha) + sum(mu.*A(i,:)) + sum(B(i,:));
+end
+% central differences for interior points
+dphi_ds = zeros(numPan,1);
+
+for i = 2:numPan-1
+    ds_forward  = S(i);
+    ds_backward = S(i-1);
+    dphi_ds(i) = (pot(i+1) - pot(i-1)) / (ds_forward + ds_backward);
 end
 
-%========== Solve for Panel Strengths ==========%
-lambda = A\b; %SOLVE LINEAR SYSTEM OF EQUATIONS
+% one-sided differences at ends
+dphi_ds(1)   = (pot(2) - pot(1)) / S(1);
+dphi_ds(numPan)   = (pot(numPan) - pot(numPan-1)) / (S(1) + S(numPan-1));
+
+for i = 1:numPan-1
+    % R = (DL(i+1)+DL(i))/2;
+    % Vt(i) = (pot(i)-pot(i+1))/R;
+    Cp(i) = 1-dphi_ds(i)^2;
+    % Cl(i) = (2*lift)/(rho*Vt(i)^2*S(i));
+end
+
+% S_tot = sum(S); %total length of curve bounding airfoil
+% F_lift = sum(Cl(:).*S(:)); %comparison lift formula
+% dp = 0.5*rho*U; %dynamic pressure term
+% Cl_tot = F_lift/(dp*S_tot); %NET LIFT COEFFICIENT OF AIRFOIL 
 
 lambda_ds = lambda(:).*S(:); %vector contraining the strengths of each panel
 Nuemann_check = sum(lambda_ds); %checking that the Neumann boundary condition is satisfied (i.e., no penetration into or out of the surface)
-
-%========== Surface Velocity and Aerodynamic Loads ==========%
-
-Vt = zeros(numPan,1); %Panel tangential velocity vector
-Cp = zeros(numPan, 1); %Panel Pressure coefficient vector
-
-for i = 1:numPan
-    source_terms = 0;
-    for j = 1:numPan
-        source_terms = source_terms + (lambda(j)/(2*pi))*(J(i,j)); %contribution of all other jth panels to tangent velocity of ith panel 
-    end
-    Vt(i) = U*sin(beta(i)) + source_terms; %surface velocity at ith control point
-    Cp(i) = 1-(Vt(i)/U)^2; %pressure coefficient evaluated at ith control point
 end
-end
-
-%% PsuedoCode for Solving Panels:
-
-%{ 
-1) Determine Influence Coefficients Based on Integration of Infinitesimal
-Potential Contributions of Each Panel (SOURCE + DOUBLET)
-
-2) let sources keep their influence coefficients (for overall thickness effects on
-velocity field potential) BUT !!prescribe source strengths as equal to the
-normal component of the free-stream velocity at their respective control
-point
-
-3) Enforce Kutta Condition on trailing edge for doublet influence
-coefficients (make sure to include self-influence coefficients as
-applicable)
-
-4) solve for doublet strengths
-
-5) check boundary conditions 
-%}
