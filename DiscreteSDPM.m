@@ -4,7 +4,7 @@ clear;
 
 %========== Define Knowns ==========%
 U = 1; %free stream velocity
-alphaD =10; %angle of attack in degrees
+alphaD =9; %angle of attack in degrees
 alphaR = alphaD*(pi/180); %angle of attack in radians
 c = 1; %chord length of foil;
 rho = 1.2; %density of air (kg/cubic meter)

@@ -27,6 +27,7 @@ switch user_input
         N = length(foilData(:,1));
         XB = foilData(:,1);
         YB = -foilData(:,2);
+        % YB(1) = 0;
 
 end
 
