@@ -56,7 +56,7 @@ rotcw = [cos(phi), sin(phi); -sin(phi), cos(phi)]; % clockwise rotation matrix t
 %% ========== (2) PRESCRIBE SOURCE STRENGTHS ==========
 
 for i = 1:N
-    sigma(i) = U*(cos(alpha)*cos(phi(i)) - sin(alpha)*sin(phi(i))); % source strength at ith panel = free-stream normal velocity at ith panel
+    sigma(i) = U*(cos(alpha)*cos(phi(i)) + sin(alpha)*sin(phi(i))); % source strength at ith panel = free-stream normal velocity at ith panel
 end
 
 %% ========== (3, 4, 5) PERFORM COORDINATE TRANSFORM AND COMPUTE INFLUENCE COEFFICIENTS ==========
@@ -72,14 +72,14 @@ for i = 1:N
         dx2 = Xj(j+1) - Xj(j); dy2 =  Yj(j+1) - Yj(j); %global x and y components of jth panel
         
         
-        X_X1 = dx1*cos(phi(j)) + dy1*sin(phi(j)) %rotate dx1 and dy1 so they are "flat"
-        X_X2 = dx2*cos(phi(j)) + dy2*sin(phi(j)) %rotate dx2 and dy2 so they are "flat"
+        X_X1 = dx1*cos(phi(j)) - dy1*sin(phi(j)) %rotate dx1 and dy1 so they are "flat"
+        X_X2 = dx2*cos(phi(j)) - dy2*sin(phi(j)) %rotate dx2 and dy2 so they are "flat"
 
         if i == 1
             dl(j) = X_X2;
         end
 
-        Yo = -dx1*sin(phi(j)) + dy1*cos(phi(j)) -0.01*L(j);
+        Yo = -dx1*sin(phi(j)) + dy1*cos(phi(j)) - 0.01*L(j);
         
         r1 = hypot(X_X1,Yo);
         r2 = hypot((X_X2-X_X1), Yo);

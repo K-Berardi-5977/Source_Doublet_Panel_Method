@@ -6,7 +6,7 @@ clear;
 alphaD =9; %angle of attack in degrees
 alphaR = alphaD*(pi/180); %angle of attack in radians
 U = 1; %free stream velocity magnitude
-U_inf = U*[cos(alphaR); sin(alphaR)] % Free stream velocity vector
+U_inf = U*[cos(alphaR); sin(alphaR)] 
 c = 1; %chord length of foil;
 rho = 1.2; %density of air (kg/cubic meter)
 

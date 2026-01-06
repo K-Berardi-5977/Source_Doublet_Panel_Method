@@ -1,35 +1,16 @@
 %========== FUNCTION TO DEFINE PANELS AND SURFACE GEOMETRY ==========%
 
-function [XB, YB, XC, YC, phiR, betaR, S, numPan] = LoadPanels(user_input, chord, alpha)
+function [XB, YB, XC, YC, phiR, betaR, S, numPan] = LoadPanels(alpha)
 %user_input: feeds the switch case variable to determine whether a
 %pre-defined profile is used or a custom one
 
-switch user_input
-    case 'Cosine'
-        N = 71; %select number of boundary points
 
-        theta_U = linspace(pi,0,N)'; %analytical angle for upper surface cosine spacing
-        theta_L = linspace(0,pi,N)'; %analytical angle for lower surface cosine spacing
-
-        xU = (chord/2)*(1 - cos(theta_U)); %upper surface x-coords
-        xL = (chord/2)*(1 - cos(theta_L)); %lower surface y-coords
-        XB = vertcat(xL, xU(2:end)); %x-coords starting at TE and traveling clockwise
-
-        for i = 1:N
-            yU(i,1) = 0.594689181*(0.298222773*sqrt(xU(i)) - 0.127125232.*xU(i) - 0.357907906.*xU(i).^2 + 0.291984971.*xU(i).^3 - 0.105174606.*xU(i).^4);
-        end
-     
-        yL = -yU; %lower surface y-coords
-        YB = vertcat(yL, yU(2:end)); %y-coords starting at trailing edge and traveling clockwise
-
-    case 'Use .dat File'
         load('foilData.dat');
         N = length(foilData(:,1));
         XB = foilData(:,1);
         YB = -foilData(:,2);
         % YB(1) = 0;
 
-end
 
 %========== Define Panel Orientation and Geometry =========%
 numPan = N-1; %N-1 panels for N coordinate points
