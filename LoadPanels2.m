@@ -1,4 +1,4 @@
-function [Xb, Yb, Xc, Yc, phiR, betaR, S, numPan, n, t] = LoadPanels2(alpha)
+function [Xb, Yb, Xc, Yc, betaR, rot, S, numPan, n, t] = LoadPanels2(alpha)
 
 %% ===== Initialize Parameters ===== %
 load('foilData.dat'); % Load airfoil grid (boundary) points from data file
@@ -22,8 +22,9 @@ beta = atan2d(dY, dX); % Compute angle (deg) between panel and global (positive)
 beta = mod(beta, 360); % Make all angles positive and between 0-360 degrees
 betaR = beta.*(pi/180); % Convert beta to radians
 
-rot = [cos(betaR) sin(betaR); % Define rotation matrix to convert vector quantities to local panel coordinates
-    -sin(betaR) cos(betaR)]; 
+rot = [cos(betaR) sin(betaR); 
+    -sin(betaR) cos(betaR)];  % Define rotation matrix to convert vector quantities to local panel coordinates
+
 
 
 % Generate Control Points in Global Coordinates
@@ -31,7 +32,7 @@ for i = 1:numPan
     Xc(i) = 0.5*(Xb(i+1)+Xb(i)); % X-coordinate of control point of ith panel
     Yc(i) = 0.5*(Yb(i+1)+Yb(i)); % Y-coordinate of control point of ith panel
 end
-phiR=0
+
 
 
 
