@@ -32,10 +32,10 @@ for i = 1:numPan
             L(i,j) = 0; % Compute doublet self-influence coefficient
         else
             Vij = (1/(2*pi)) * [dxc(i,j), dyc(i,j)]/rc2(i,j); % Compute source velocity kernel
-            M(i,j) = S(j) * dot(Vij, n_hat(:,i)) % Compute source influence coefficient of jth panel on the ith panel
+            M(i,j) = S(j) * dot(Vij, n_hat(:,i)) % Compute source normal influence coefficient of jth panel on the ith panel
 
             Qij = (1/(2*pi)) * [-dyc(i,j), dxc(i,j)]/rc2(i,j); % Compute doublet velocity kernel
-            L(i,j) = S(j) * dot(Qij, n_hat(:,i)); % Compute doublet influence coefficient of the jth panel on the ith panel
+            L(i,j) = S(j) * dot(Qij, n_hat(:,i)); % Compute doublet normal influence coefficient of the jth panel on the ith panel
     end
     end
 end

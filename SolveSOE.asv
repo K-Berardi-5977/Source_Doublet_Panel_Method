@@ -1,0 +1,21 @@
+% Function to solve the system of matrix equations for the source doublet
+% panel method and return a vector of doublet strengths and panel surface
+% velocities
+
+function [mu] = SolveSOE(D, M, U_normal, sigma, numPan)
+
+S = M * sigma' % Compute source terms by multiplying source strengths by their influence coefficients 
+
+for i = 1:numPan+1
+    % Create right hand side of matrix equation by subtracting the free-stream and source terms
+    if i ~= numPan+1
+        RHS(i) = -(U_normal(i)+S(i))
+    else
+        RHS(i) = 0 % Kutta free-stream row
+    end
+end
+
+% === Solve System of Equations for Doublet Strength === %
+mu = RHS\D
+ 
+end

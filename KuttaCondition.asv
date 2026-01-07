@@ -3,15 +3,23 @@
 %edge panels, the result will be influence coefficients mapped to an exact
 %solution of the matrix equation
 
-function [D] = KuttaCondition(L, numPan)
+function [D, U_normal] = KuttaCondition(L, numPan, U_normal)
 
 KuttaRow = zeros(1, numPan+1); % Generate row to append to doublet influence coefficient matrix to
 
 % Modify Kutta row values to enforce that mu_upper_TE - mu_lower_TE = mu_wake
-KuttaRow(1) = 1; % Lower trailing edge
-KuttaRow(numPan) = -1;
+KuttaRow(1) = 1; % Lower trailing edge assigned
+KuttaRow(numPan) = -1; % Upper trailing edge assigned
+KuttaRow(numPan+1) = 1; % Wake assigned 
+
+% Construct modified influence coefficient matrix with Kutta row included
 D = zeros(numPan, numPan+1); % Initialize updated doublet normal velocity influence coefficient matrix
 D = [D; KuttaRow]; % Append Kutta condition row to influence coefficient matrix
+
+% Create placeholder normal velocity difference at TE to make system of equations
+% solveable
+U_normal(numPan+1) = U_normal(N)-U_normal(1); % Last value of normal velocity set to make matrix equations solveable
+
 
 
 

@@ -30,4 +30,8 @@ rho = 1.2; % Air density (kg/ cubic meter)
 
 % ===== Enforce Kutta Condition ===== %
 
-[D] = KuttaCondition(L, numPan)
+[D, U_normal] = KuttaCondition(L, numPan, U_normal)
+
+% ===== Solve System of Equations ===== %
+
+[mu] = SolveSOE(D, M, U_normal, sigma, numPan)
