@@ -1,0 +1,46 @@
+%function to compute the influence coefficients of the source and doublet
+%panels in both the velocity potential and velocity formulations
+
+function [J, K, L, M, rc2] = SDIC(xc, yc, S, numPan, n_hat)
+
+% === Initialize Temporary Variables === %
+dxc = zeros(numPan, numPan); % Matrix to store x-distance between control points
+dyc = zeros(numPan, numPan); % Matrix to store y-distance between control points
+rc2 = zeros(numPan, numPan); % Matrix to store squared distances between control points
+
+for i = 1:numPan
+    for j = 1:numPan
+        dxc(i,j) = xc(i) - xc(j); % Compute x-distance between jth control point and ith control point
+        dyc(i,j) = yc(i) - yc(j); % Compute y-distance between jth control point and ith control point
+        rc2(i,j) = dxc(i,j)^2 + dyc(i, j)^2; % Compute squared distance between jth control point and ith control point
+    end
+end
+
+
+% === Initialize Influence Coefficient Matrices === %
+J = zeros(numPan, numPan); % Doublet potential influence coefficient
+K = zeros(numPan, numPan); % Source potential influence coefficient
+L = zeros(numPan, numPan); % Doublet normal velocity influence coefficient
+M = zeros(numPan, numPan); % Source normal velocity influence coefficient
+
+% === Compute Velocity Influence Coefficients ===
+
+for i = 1:numPan
+    for j = 1:numPan
+        if i == j
+            M(i,j) = 0.5; % Compute source self-influence coefficient
+            L(i,j) = 0; % Compute doublet self-influence coefficient
+        else
+            Vij = (1/(2*pi)) * [dxc(i,j), dyc(i,j)]/rc2(i,j); % Compute source velocity kernel
+            M(i,j) = S(j) * dot(Vij, n_hat(:,i)) % Compute source influence coefficient of jth panel on the ith panel
+
+            Qij = (1/(2*pi)) * [-dyc(i,j), dxc(i,j)]/rc2(i,j); % Compute doublet velocity kernel
+            L(i,j) = S(j) * dot(Qij, n_hat(:,i)); % Compute doublet influence coefficient of the jth panel on the ith panel
+    end
+    end
+end
+
+
+
+
+end

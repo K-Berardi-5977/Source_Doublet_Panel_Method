@@ -12,7 +12,7 @@ rho = 1.2; % Air density (kg/ cubic meter)
 %% ========== PRE-PROCESSING ========== %
 
 % ===== Load Airfoil Geometry (Panel Mesh) ===== %
-[XB, YB, XC, YC, betaR, S, numPan, n_hat, t_hat] = LoadPanels2(alphaD);
+[Xb, Yb, xc, yc, betaR, S, numPan, n_hat, t_hat] = LoadPanels2(alphaD);
 
 % ===== Rotate Free-Stream into Local Panel Coordinate Frame ===== %
 [U_tangent, U_normal, U_local] = LocalFreeStream(U_inf, numPan, t_hat, n_hat);
@@ -25,3 +25,9 @@ rho = 1.2; % Air density (kg/ cubic meter)
 % ===== Initialize Variables and Enforce Fixed Parameters ===== %
 
 [sigma, Neumann_Validation] = FixSourceStrength(U_normal, S);
+
+[J, K, L, M, rc2] = SDIC(xc, yc, S, numPan, n_hat);
+
+% ===== Enforce Kutta Condition ===== %
+
+[D] = KuttaCondition(L, numPan)

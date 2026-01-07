@@ -56,7 +56,7 @@ rotcw = [cos(phi), sin(phi); -sin(phi), cos(phi)]; % clockwise rotation matrix t
 %% ========== (2) PRESCRIBE SOURCE STRENGTHS ==========
 
 for i = 1:N
-    sigma(i) = U*(cos(alpha)*cos(phi(i)) - sin(alpha)*sin(phi(i))); % source strength at ith panel = free-stream normal velocity at ith panel
+    sigma(i) = U*(cos(alpha)*sin(phi(i)) - sin(alpha)*cos(phi(i))); % source strength at ith panel = free-stream normal velocity at ith panel
 end
 
 %% ========== (3, 4, 5) PERFORM COORDINATE TRANSFORM AND COMPUTE INFLUENCE COEFFICIENTS ==========
