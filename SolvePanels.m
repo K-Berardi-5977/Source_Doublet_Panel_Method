@@ -56,7 +56,7 @@ rotcw = [cos(phi), sin(phi); -sin(phi), cos(phi)]; % clockwise rotation matrix t
 %% ========== (2) PRESCRIBE SOURCE STRENGTHS ==========
 
 for i = 1:N
-    sigma(i) = U*(cos(alpha)*cos(phi(i)) + sin(alpha)*sin(phi(i))); % source strength at ith panel = free-stream normal velocity at ith panel
+    sigma(i) = U*(cos(alpha)*cos(phi(i)) - sin(alpha)*sin(phi(i))); % source strength at ith panel = free-stream normal velocity at ith panel
 end
 
 %% ========== (3, 4, 5) PERFORM COORDINATE TRANSFORM AND COMPUTE INFLUENCE COEFFICIENTS ==========
@@ -104,9 +104,9 @@ for i = 1:N
     end
     dxw = xi(i)-Xj(N);
     dyw = yi(i)-Yj(N);
-    thw = -atan(dyw/dxw);
+    thw = atan(dyw/dxw);
 
-    D(i,N+1) = (-1/(2*pi))*thw;
+    D(i,N+1) = (1/(2*pi))*thw;
 end
 
 %% ========== (6) Enforce Kutta Condition at Trailing Edge ==========
@@ -115,9 +115,9 @@ end
 for i = 1:N
     for j = 1:N 
         if j == 1
-            D(i,j) = D(i,j) + D(i, N+1);
-        elseif j == N
             D(i,j) = D(i,j) - D(i, N+1);
+        elseif j == N
+            D(i,j) = D(i,j) + D(i, N+1);
         else
             continue
         end

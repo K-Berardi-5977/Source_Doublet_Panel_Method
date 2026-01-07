@@ -1,4 +1,4 @@
-function [Xb, Yb, Xc, Yc, betaR, rot, S, numPan, n, t] = LoadPanels2(alpha)
+function [Xb, Yb, Xc, Yc, betaR, S, numPan, n_hat, t_hat] = LoadPanels2(alpha)
 
 %% ===== Initialize Parameters ===== %
 load('foilData.dat'); % Load airfoil grid (boundary) points from data file
@@ -16,14 +16,11 @@ Yc = zeros(numPan,1); % Initialize control points y-coordinate vector
 dX = diff(Xb)'; % Compute panel length x-component 
 dY = diff(Yb)'; % Compute panel length y-component 
 S = hypot(dX, dY); % Compute panel length
-t = ([dX; dY]./S)'; % Compute panel tangent vector
-n = [-t(:,2) t(:,1)]; % Compute panel normal vector
+t_hat = ([dX; dY]./S); % Compute panel unit tangent vector
+n_hat = [-t_hat(2,:); t_hat(1,:)]; % Compute panel unit normal vector
 beta = atan2d(dY, dX); % Compute angle (deg) between panel and global (positive) x-axis
 beta = mod(beta, 360); % Make all angles positive and between 0-360 degrees
 betaR = beta.*(pi/180); % Convert beta to radians
-
-rot = [cos(betaR) sin(betaR); 
-    -sin(betaR) cos(betaR)];  % Define rotation matrix to convert vector quantities to local panel coordinates
 
 
 

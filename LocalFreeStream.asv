@@ -1,0 +1,10 @@
+%This function rotates the free-stream velocity into the local panel
+%reference coordinates
+
+function [U_local, U_local_2] = LocalFreeStream(U_inf, betaR, t, n)
+% Compute free-stream velocity vector in local panel coordinates for all panels
+U_local = [cos(betaR).*U_inf(1) + sin(betaR).*U_inf(2); 
+    -sin(betaR).*U_inf(1) + cos(betaR).*U_inf(2)];
+
+U_local_2(1,:) 
+end

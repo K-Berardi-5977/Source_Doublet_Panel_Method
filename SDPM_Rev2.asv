@@ -22,6 +22,6 @@ rho = 1.2; % Air density (kg/ cubic meter)
 
 %% ========== SIMULATION EXECUTION ========== %
 
-% ===== Initialize Variables and Enforce Fixed Parameters ===== %
+% ===== Enforce Desired Boundary Conditions ===== %
 
-[sigma, Neumann_Validation] = FixSourceStrength(U_normal, S);
+[sigma] = NuemannBC(U_normal, S)
