@@ -102,8 +102,8 @@ for i = 1:N
             S_ds(i,j) = (1/(2*pi))*(log(r1/r2));
     end
     end
-    dxw = xi(i)-1;
-    dyw = yi(i);
+    dxw = xi(i)-Xj(N);
+    dyw = yi(i)-Yj(N);
     thw = atan(dyw/dxw);
 
     D(i,N+1) = (1/(2*pi))*thw;
@@ -137,7 +137,7 @@ for i = 1:N
     end
 end
 
-RHS = sum(sig_S, 2); %right hand Side of Linear System of Equations
+RHS = sum(sig_S, 2) %right hand Side of Linear System of Equations
 
 % ===== Solve for Doublet Strengths ===== 
 

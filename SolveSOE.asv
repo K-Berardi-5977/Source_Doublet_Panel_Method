@@ -8,14 +8,12 @@ S = M * sigma' % Compute source terms by multiplying source strengths by their i
 
 for i = 1:numPan+1
     % Create right hand side of matrix equation by subtracting the free-stream and source terms
-    if i ~= numPan+1
-        RHS(i) = -(U_normal(i)+S(i))
-    else
-        RHS(i) = 0 % Kutta free-stream row
-    end
+  
+        RHS(i) = -(U_normal(i)+S(i));
+
 end
 
 % === Solve System of Equations for Doublet Strength === %
-mu = RHS\D
+mu = RHS/D;
  
 end

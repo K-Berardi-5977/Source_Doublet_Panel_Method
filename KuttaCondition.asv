@@ -3,22 +3,48 @@
 %edge panels, the result will be influence coefficients mapped to an exact
 %solution of the matrix equation
 
-function [D, U_normal] = KuttaCondition(L, numPan, U_normal)
+function [D, U_normal] = KuttaCondition(L, Xb, Yb, xc, yc alphaR, c, numPan, U_normal)
 
-KuttaRow = zeros(1, numPan+1); % Generate row to append to doublet influence coefficient matrix to
+Sw = 3*c; % Compute wake panel length (currently 3 chord lengths)
+Xw1 = Xb(1); % First wake x-coordinate
+Xw2 = Xw1 + Sw*cos(alphaR); % Second wake x-coordinate
+Yw1 = Yb(1); % First wake y-coordinate
+Yw2 = Yw1 + sin(alphaR); % Second wake y-coordinate
+xcw = 0.5*(Xw1+Xw2); % Compute wake control point x-coordinate
+ycw = 0.5*(Yw1+Yw2); % Compute wake control point y-coordinate
 
-% Modify Kutta row values to enforce that mu_upper_TE - mu_lower_TE = mu_wake
-KuttaRow(1) = 1; % Lower trailing edge assigned
-KuttaRow(numPan) = -1; % Upper trailing edge assigned
-KuttaRow(numPan+1) = 1; % Wake assigned 
+D = zeros(numPan, 1); % Initialize wake doublet influence coefficient vector
 
-% Construct modified influence coefficient matrix with Kutta row included
-D = zeros(numPan, numPan+1); % Initialize updated doublet normal velocity influence coefficient matrix
-D = [D; KuttaRow]; % Append Kutta condition row to influence coefficient matrix
+for i = 1:numPan
+    dxw = xc(i) - xcw; % Compute x-distance between the ith control point and wake control point
+    dyw = yc(i) - ycw; % Compute y-distance between the ith control point and wake control point
+    rw2 = dxw^2 + dyw^2; % Compute the squared distance between the ith contorl point and wake control point
 
-% Create placeholder normal velocity difference at TE to make system of equations
-% solveable
-U_normal(numPan+1) = U_normal(N)-U_normal(1); % Last value of normal velocity set to make matrix equations solveable
+    Qiw = (1/(2*pi)) * [-dyw, dxw] ./ rw2
+end
+
+% KuttaRow = zeros(1, numPan+1); % Generate row to append to doublet influence coefficient matrix to
+% 
+% % Modify Kutta row values to enforce that mu_upper_TE - mu_lower_TE = mu_wake
+% KuttaRow(1) = 1; % Lower trailing edge assigned
+% KuttaRow(numPan) = -1; % Upper trailing edge assigned
+% KuttaRow(numPan+1) = 1; % Wake assigned 
+% 
+% % Construct modified influence coefficient matrix with Kutta row included
+% L(:, numPan+1) = 0; % Modify doublet influence coefficient matrix to include column for wake influence
+% D = zeros(numPan, numPan+1); % Initialize updated doublet normal velocity influence coefficient matrix
+% D = [L; KuttaRow]; % Append Kutta condition row to influence coefficient matrix
+% 
+% % Apply Kutta condition constraint to doublet influence coefficient matrix
+% D(:,1) = D(:,1) - D(:,numPan+1); 
+% D(:,numPan) = D(:,numPan) + D(:,numPan+1);
+% 
+% % Reduce order of influence coefficient matrix
+% D = D(1:numPan, 1:numPan);
+% 
+% % Create placeholder zero at TE to make system of equations
+% % solveable
+% U_normal(numPan+1) = 0; % Last value of normal velocity set to make matrix equations solveable
 
 
 
