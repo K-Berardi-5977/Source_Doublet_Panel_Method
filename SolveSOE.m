@@ -4,7 +4,7 @@
 
 function [mu] = SolveSOE(L, M, U_normal, sigma, numPan)
 
-S = M * sigma'; % Compute source terms by multiplying source strengths by their influence coefficients 
+S = sigma*M; % Compute source terms by multiplying source strengths by their influence coefficients 
 
 for i = 1:numPan
     % Create right hand side of matrix equation by subtracting the free-stream and source terms
@@ -13,6 +13,11 @@ for i = 1:numPan
            
 end
 % === Solve System of Equations for Doublet Strength === %
-mu = L\RHS;
+RHS(numPan+1) = 0;
+mu = RHS\L;
+
+L(numPan+1,:) = [];
+
+
  
 end

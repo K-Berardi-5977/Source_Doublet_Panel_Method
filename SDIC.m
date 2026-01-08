@@ -27,17 +27,19 @@ M = zeros(numPan, numPan); % Source normal velocity influence coefficient
 
 for i = 1:numPan
     for j = 1:numPan
+         Vij = (1/(2*pi)) * [dxc(i,j), dyc(i,j)]/rc2(i,j); % Compute source velocity kernel
+         Qij = (1/(2*pi)) * [-dyc(i,j), dxc(i,j)]/rc2(i,j); % Compute doublet velocity kernel
         if i == j
-            J(i,j) = 0.5; % Compute doublet tangential self-influence coefficient
+            J(i,j) = 0.5*S(j) ; % Compute doublet tangential self-influence coefficient
             K(i,j) = 0; % Compute source tangential self-influence coefficient
-            M(i,j) = 0.5; % Compute source normal self-influence coefficient
+            M(i,j) = -0.5*S(j); % Compute source normal self-influence coefficient
             L(i,j) = 0; % Compute doublet normal self-influence coefficient
         else
-            Vij = (1/(2*pi)) * [dxc(i,j), dyc(i,j)]/rc2(i,j); % Compute source velocity kernel
+           
             K(i,j) = S(j) * dot(Vij, t_hat(:,i)); % Compute source tangential influence coefficient of jth panel on the ith panel
             M(i,j) = S(j) * dot(Vij, n_hat(:,i)); % Compute source normal influence coefficient of jth panel on the ith panel
 
-            Qij = (1/(2*pi)) * [-dyc(i,j), dxc(i,j)]/rc2(i,j); % Compute doublet velocity kernel
+            
             J(i,j) = S(j) * dot(Qij, t_hat(:,i)); % Compute doublet tangent influence coefficient of jth panel on the ith panel
             L(i,j) = S(j) * dot(Qij, n_hat(:,i)); % Compute doublet normal influence coefficient of the ith panel on the jth panel
     end

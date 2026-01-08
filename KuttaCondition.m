@@ -4,7 +4,7 @@
 %solution of the matrix equation
 
 function [L, U_normal] = KuttaCondition(L, S, Xb, Yb, xc, yc, alphaR, c, numPan, n_hat, U_normal)
-Sw = 0.08909; % Compute wake panel length (currently 3 chord lengths)
+Sw = 0.000; % Compute wake panel length (currently 3 chord lengths)
 Xw1 = Xb(1); % First wake x-coordinate
 Xw2 = Xw1 + Sw*cos(alphaR); % Second wake x-coordinate
 Yw1 = Yb(1); % First wake y-coordinate
@@ -23,13 +23,13 @@ for i = 1:numPan
 end
 test = L(:, numPan+1);
  disp(test)
-% KuttaRow = zeros(1, numPan+1); % Create N+1 row to add to doublet influence coefficient matrix to make system of equations solveable
-% KuttaRow(1) = 1; % Fixing value of lower TE doublet strength
-% KuttaRow(numPan) = -1; % Fixing value of upper TE doublet strength
-% KuttaRow(numPan+1) = -1; % Fixing value of wake strength
-
-L(:,1) = L(:,1) + L(:,numPan+1); % 
-L(:,numPan) = L(:,numPan) - L(:,numPan+1); %
+KuttaRow = zeros(1, numPan+1); % Create N+1 row to add to doublet influence coefficient matrix to make system of equations solveable
+KuttaRow(1) = 1; % Fixing value of lower TE doublet strength
+KuttaRow(numPan) = -1; % Fixing value of upper TE doublet strength
+KuttaRow(numPan+1) = -1; % Fixing value of wake strength
+L = [L; KuttaRow]
+L(:,1) = L(:,1) - L(:,numPan+1); % 
+L(:,numPan) = L(:,numPan) + L(:,numPan+1); %
 L(:, numPan+1) = []; 
 % KuttaRow = zeros(1, numPan+1); % Generate row to append to doublet influence coefficient matrix to
 % 

@@ -2,9 +2,9 @@
 clc
 clear
 %% ========== INPUT PARAMETERS ========= %
-alphaD = 0; % Angle of attack (degrees)
+alphaD = 9; % Angle of attack (degrees)
 alphaR = alphaD*(pi/180); % Angle of attack (radians)
-U = 8; % Free stream velocity magnitude (m/s)
+U = 1; % Free stream velocity magnitude (m/s)
 U_inf = U*[cos(alphaR); sin(alphaR)]; % Free stream velocity vector (m/s)
 c = 1; % Chord Length (m) 
 rho = 1.2; % Air density (kg/ cubic meter)
@@ -43,9 +43,9 @@ half_x = floor(numPan/2);
 figure; hold on;
 set(gca, 'YDir','reverse')
 plot(xc(1:half_x), Cp(1:half_x), 'b');
-plot(xc(half_x+1:end), Cp(half_x+1:end), 'r');
+plot(xc(half_x:end), Cp(half_x:end), 'r');
 plot(xc(1:half_x), Cp(1:half_x), 'bo')
-plot(xc(half_x+1:end), Cp(half_x+1:end), 'ro');
+plot(xc(half_x:end), Cp(half_x:end), 'ro');
 % plot(xc, VT)
 % plot(x_c, V_s, 'r--');
 title(['Pressure Distribution on Airfoil Surface ($\alpha = ', num2str(alphaD), ')$'], 'Interpreter','latex');
