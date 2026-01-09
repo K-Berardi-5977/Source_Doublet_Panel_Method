@@ -3,7 +3,7 @@ clc;
 clear;
 
 %========== Define Knowns ==========%
-alphaD =0; %angle of attack in degrees
+alphaD =9; %angle of attack in degrees
 alphaR = alphaD*(pi/180); %angle of attack in radians
 U = 1; %free stream velocity magnitude
 U_inf = U*[cos(alphaR); sin(alphaR)] % Free stream velocity vector

@@ -9,12 +9,12 @@ sigma = U_normal; % Set source strength equal to normal velocity at each panel
 %Validate that the sum of all source strengths is approximately zero such
 %that no net fluid is added or removed from the flow
 
-if sum(sigma.*S) <= 1E-4
+if sum(sigma(:).*S(:)) <= 1E-4
     disp(sum(sigma.*S))
     Nuemann_Validation = true;
     disp("The Nuemann Boundary Condition is Satisfied")
 else
-    disp(sum(sigma.*S))
+    disp(sigma(:).*S(:))
     Nuemann_Validation = false;
     disp("The Nuemann Boundary Condition is Violated")
 end

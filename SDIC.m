@@ -30,9 +30,9 @@ for i = 1:numPan
          Vij = (1/(2*pi)) * [dxc(i,j), dyc(i,j)]/rc2(i,j); % Compute source velocity kernel
          Qij = (1/(2*pi)) * [-dyc(i,j), dxc(i,j)]/rc2(i,j); % Compute doublet velocity kernel
         if i == j
-            J(i,j) = 0.5*S(j) ; % Compute doublet tangential self-influence coefficient
+            J(i,j) = -0.5*S(j) ; % Compute doublet tangential self-influence coefficient
             K(i,j) = 0; % Compute source tangential self-influence coefficient
-            M(i,j) = -0.5*S(j); % Compute source normal self-influence coefficient
+            M(i,j) = 0.5*S(j); % Compute source normal self-influence coefficient
             L(i,j) = 0; % Compute doublet normal self-influence coefficient
         else
            

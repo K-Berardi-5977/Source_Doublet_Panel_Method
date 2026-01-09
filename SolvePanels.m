@@ -102,8 +102,8 @@ for i = 1:N
             S_ds(i,j) = (1/(2*pi))*(log(r1/r2));
     end
     end
-    dxw = xi(i)-1;
-    dyw = yi(i);
+    dxw = xi(i)-1*cos(alpha);
+    dyw = yi(i)-1*sin(alpha);
     thw = atan(dyw/dxw);
 
     D(i,N+1) = (1/(2*pi))*thw;
@@ -125,7 +125,7 @@ for i = 1:N
 end
 
 % ===== Remove column N+1 from doublet influence coefficient matrix
-D(:,N+1) = [];
+
 
 %% ========== (7) SOLVE LINEAR SYSTEM OF EQUATIONS AND CHECK BOUNDARY CONDITIONS ==========
 
@@ -133,15 +133,15 @@ D(:,N+1) = [];
 
 for i = 1:N 
     for j = 1:N 
-        sig_S(i,j) = sigma(j)*S(i,j); % Creates Matrix of source strenghts multiplied by their influence coefficients for each point
+        sig_S(i,j) =-S(i,j)*sigma(j); % Creates Matrix of source strenghts multiplied by their influence coefficients for each point
     end
 end
 
-RHS = sum(sig_S, 2); %right hand Side of Linear System of Equations
+RHS = sum(sig_S, 2) %right hand Side of Linear System of Equations
 
 % ===== Solve for Doublet Strengths ===== 
 
-mu = (-RHS\D) %solve for doublet strengths
+mu = RHS\D %solve for doublet strengths
 
 Nuemann_check = sum(sigma(:).*L(:)) %vector contraining the strengths of each panel
 

@@ -12,7 +12,7 @@ rho = 1.2; % Air density (kg/ cubic meter)
 %% ========== PRE-PROCESSING ========== %
 
 % ===== Load Airfoil Geometry (Panel Mesh) ===== %
-[Xb, Yb, xc, yc, betaR, S, numPan, n_hat, t_hat] = LoadPanels2(alphaD);
+[Xb, Yb, xc, yc, betaR, S, numPan, n_hat, t_hat, dX, dY] = LoadPanels2(alphaD);
 
 % ===== Rotate Free-Stream into Local Panel Coordinate Frame ===== %
 [U_tangent, U_normal, U_local] = LocalFreeStream(U_inf, numPan, t_hat, n_hat);
@@ -30,13 +30,15 @@ rho = 1.2; % Air density (kg/ cubic meter)
 
 % ===== Enforce Kutta Condition ===== %
 
-[L, U_normal] = KuttaCondition(L, S, Xb, Yb, xc, yc, alphaR, c, numPan, n_hat, U_normal);
+[L, J, U_normal] = KuttaCondition(L, J, S, Xb, Yb, xc, yc, alphaR, c, numPan, n_hat, t_hat, U_normal);
 
 % ===== Solve System of Equations ===== %
 
-[mu] = SolveSOE(L, M, U_normal, sigma, numPan)
+[mu] = SolveSOE(L, M, U_normal, sigma, numPan);
 
-[Cp, VT, Vt_s, Vt_d] = AeroLoads(U, U_tangent, S, sigma, mu, J, K, numPan);
+[Cp, VT, Vt_s, Vt_d, Vt_w] = AeroLoads(U, U_tangent, S, sigma, mu, J, K, numPan);
+
+% sum(mu(:).*S(:))
 
 Xb(end) = [];
 half_x = floor(numPan/2);
@@ -46,9 +48,8 @@ plot(xc(1:half_x), Cp(1:half_x), 'b');
 plot(xc(half_x:end), Cp(half_x:end), 'r');
 plot(xc(1:half_x), Cp(1:half_x), 'bo')
 plot(xc(half_x:end), Cp(half_x:end), 'ro');
-% plot(xc, VT)
-% plot(x_c, V_s, 'r--');
 title(['Pressure Distribution on Airfoil Surface ($\alpha = ', num2str(alphaD), ')$'], 'Interpreter','latex');
 xlabel('X-Coordinate of Airfoil');
 ylabel('Coefficient of Pressure (Cp)');
 legend('Bottom Cp', 'Top Cp');
+

@@ -3,8 +3,8 @@
 %edge panels, the result will be influence coefficients mapped to an exact
 %solution of the matrix equation
 
-function [L, J, U_normal] = KuttaCondition(L, J, S, Xb, Yb, xc, yc, alphaR, c, numPan, n_hat, t_hat, U_normal)
-Sw = 3; % Compute wake panel length (currently 3 chord lengths)
+function [L, J, U_normal] = KuttaCondition(L, S, Xb, Yb, xc, yc, alphaR, c, numPan, n_hat, t_hat, U_normal)
+Sw = 3*c; % Compute wake panel length (currently 3 chord lengths)
 Xw1 = Xb(1); % First wake x-coordinate
 Xw2 = Xw1 + Sw*cos(alphaR); % Second wake x-coordinate
 Yw1 = Yb(1); % First wake y-coordinate
@@ -27,16 +27,16 @@ end
 KuttaRow = zeros(1, numPan+1); % Create N+1 row to add to doublet influence coefficient matrix to make system of equations solveable
 KuttaRow(1) = -1; % Fixing value of lower TE doublet strength
 KuttaRow(numPan) = 1; % Fixing value of upper TE doublet strength
-KuttaRow(numPan+1) = 1; % Fixing value of wake strength
+KuttaRow(numPan+1) = -1; % Fixing value of wake strength
 L = [L; KuttaRow];
 
 L(:,1) = L(:,1) - L(:,end); % Lower TE normal kutta condition
-L(:,numPan) = L(:,numPan) - L(:,end); % Upper TE normal kutta condition
+L(:,numPan) = L(:,numPan) + L(:,end); % Upper TE normal kutta condition
 L = L(:,1:end-1); % Eliminate Kutta column from normal velocity influence coefficient matrix
 
-J(:,1) = J(:,1) - J(:,end); % Lower TE tangent kutta condition
+J(:,1) = J(:,numPan) + J(:,end); % Lower TE tangent kutta condition
 J(:,numPan) = J(:,numPan) - J(:,end); % Upper TE tangent kutta condition
-% J = J(:,1:end-1); % Eliminate Kutta column from tangent velocity influence coefficient matrix
+J = J(:,1:end-1); % Eliminate Kutta column from tangent velocity influence coefficient matrix
 
 
 
