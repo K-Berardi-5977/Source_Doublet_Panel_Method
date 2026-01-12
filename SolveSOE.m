@@ -8,7 +8,7 @@ S = M*sigma; % Compute source terms by multiplying source strengths by their inf
 for i = 1:numPan
     % Create right hand side of matrix equation by subtracting the free-stream and source terms
  
-            RHS(i,1) = -(U_normal(i)+S(i));
+            RHS(i,1) = -(U_normal(i) + S(i));
            
 end
 

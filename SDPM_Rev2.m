@@ -2,7 +2,7 @@
 clc
 clear
 %% ========== INPUT PARAMETERS ========= %
-alphaD = 9; % Angle of attack (degrees)
+alphaD = 10; % Angle of attack (degrees)
 alphaR = alphaD*(pi/180); % Angle of attack (radians)
 U = 1; % Free stream velocity magnitude (m/s)
 U_inf = U*[cos(alphaR); sin(alphaR)]; % Free stream velocity vector (m/s)
@@ -30,13 +30,13 @@ rho = 1.2; % Air density (kg/ cubic meter)
 
 % ===== Enforce Kutta Condition ===== %
 
-[L, J, U_normal] = KuttaCondition(L, J, S, Xb, Yb, xc, yc, alphaR, c, numPan, n_hat, t_hat, U_normal);
+[L, J, Jwake, U_normal] = KuttaCondition(L, J, S, Xb, Yb, xc, yc, alphaR, c, numPan, n_hat, t_hat, U_normal);
 
 % ===== Solve System of Equations ===== %
 
 [mu] = SolveSOE(L, M, U_normal, sigma, numPan);
 
-[Cp, VT, Vt_s, Vt_d, Vt_w] = AeroLoads(U, U_tangent, S, sigma, mu, J, K, numPan);
+[Cp, VT, Vt_s, Vt_d, Vt_w] = AeroLoads(U, U_tangent, S, sigma, mu, J, Jwake, K, numPan);
 
 % sum(mu(:).*S(:))
 
