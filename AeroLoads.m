@@ -7,6 +7,6 @@ Vt_w = Jwake * (mu(numPan)-mu(1));
 VT = zeros(numPan, 1); % Create vector to store panel surface velocities
 Cp = zeros(numPan, 1); % Create vector to store pressure coefficient vallues
 
-VT = U_tangent + Vt_s + Vt_d + Vt_w; % Compute total tangent velocity at ith panel
+VT = U_tangent + Vt_s + Vt_d; % Compute total tangent velocity at ith panel
 Cp = 1-(VT.^2)*(1/U);
 end

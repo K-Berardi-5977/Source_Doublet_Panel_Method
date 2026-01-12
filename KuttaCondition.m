@@ -4,7 +4,7 @@
 %solution of the matrix equation
 
 function [L, J, Jwake, U_normal] = KuttaCondition(L, J, S, Xb, Yb, xc, yc, alphaR, c, numPan, n_hat, t_hat, U_normal)
-Sw = 0.0224; % Compute wake panel length (currently 3 chord lengths)
+Sw = 0.05; % Compute wake panel length (currently 3 chord lengths)
 Xw1 = Xb(1); % First wake x-coordinate
 Xw2 = Xw1 + Sw*cos(alphaR); % Second wake x-coordinate
 Yw1 = Yb(1); % First wake y-coordinate
@@ -13,7 +13,6 @@ xcw = 0.5*(Xw1+Xw2); % Compute wake control point x-coordinate
 ycw = 0.5*(Yw1+Yw2); % Compute wake control point y-coordinate
 
 for i = 1:numPan
-    if i ~= j
     dxw = xc(i) - xcw; % Compute x-distance between the ith control point and wake control point
     dyw = yc(i) - ycw % Compute y-distance between the ith control point and wake control point
     rw2 = dxw^2 + dyw^2; % Compute the squared distance between the ith contorl point and wake control point
@@ -21,9 +20,7 @@ for i = 1:numPan
     Qiw = (1/(2*pi)) * [-dyw, dxw] / rw2; % Compute wake doublet velocity kernel
     L(i, numPan+1) = Sw * dot(Qiw, n_hat(:,i)); % Compute wake doublet normal velocity influence coefficient on the ith panel control point and add to doublet matrix
     J(i, numPan+1) = Sw * dot(Qiw, t_hat(:,i)); % Compute wake doublet tangent velocity influence coefficient on the ith panel control point and add to doublet matrix
-    else
-        continue
-    end
+
 end
 
 
@@ -34,11 +31,11 @@ KuttaRow(numPan) = -1; % Fixing value of upper TE doublet strength
 KuttaRow(numPan+1) = 1; % Fixing value of wake strength
 L = [L; KuttaRow];
 
-L(:,1) = L(:,1) + L(:,numPan+1); % Lower TE normal kutta condition
+L(:,1) = L(:,1) - L(:,numPan+1); % Lower TE normal kutta condition
 L(:,numPan) = L(:,numPan) - L(:,numPan+1); % Upper TE normal kutta condition
 L = L(:,1:numPan); % Eliminate Kutta column from normal velocity influence coefficient matrix
 
-J(:,1) = J(:,1) + J(:,numPan+1); % Lower TE tangent kutta condition
+J(:,1) = J(:,1) - J(:,numPan+1); % Lower TE tangent kutta condition
 J(:,numPan) = J(:,numPan) - J(:,numPan+1); % Upper TE tangent kutta condition
 Jwake = J(:,numPan+1);
 J = J(:,1:numPan); % Eliminate Kutta column from tangent velocity influence coefficient matrix

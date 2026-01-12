@@ -90,10 +90,10 @@ for i = 1:N
         % ===== COMPUTE INFLUENCE COEFFICIENTS =====%
         if i == j 
             D(i,j) = 0.5; %doublet self influence coefficient
-            S(i,j) = (1/pi)*(X_X1*log(r1)); %source self influence coefficient
+            S(i,j) = 0; %source self influence coefficient
 
-            D_ds(i,j) = 0; % no ith doublet self influence on surface velocity of ith panel
-            S_ds(i,j) = (1/(2*pi))*(log(r1/r2)); % influence of ith source on surface velocity of ith panel
+            D_ds(i,j) = 0.5; % no ith doublet self influence on surface velocity of ith panel
+            S_ds(i,j) = 0; % influence of ith source on surface velocity of ith panel
         else
             D(i,j) = (-1/(2*pi))*(th2-th1); % doublet influence coefficient of the jth panel doublet on the ith control point
             S(i,j) = (1/(2*pi))*(X_X1*log(r1) - (X_X1-X_X2)*log(r2) + Yo*(th2-th1)); %influence of the jth panel source on the ith control point
@@ -108,6 +108,10 @@ for i = 1:N
 
     D(i,N+1) = (1/(2*pi))*thw;
 end
+D(N+1,:) = zeros(1,N+1);
+D(N+1,1) = 1;
+D(N+1,N) = -1;
+D(N+1,N+1) = 1;
 
 %% ========== (6) Enforce Kutta Condition at Trailing Edge ==========
 
@@ -115,9 +119,9 @@ end
 for i = 1:N
     for j = 1:N 
         if j == 1
-            D(i,j) = D(i,j) - D(i, N+1);
-        elseif j == N
             D(i,j) = D(i,j) + D(i, N+1);
+        elseif j == N
+            D(i,j) = D(i,j) - D(i, N+1);
         else
             continue
         end
@@ -125,7 +129,7 @@ for i = 1:N
 end
 
 % ===== Remove column N+1 from doublet influence coefficient matrix
-
+D = D(:, 1:N);
 
 %% ========== (7) SOLVE LINEAR SYSTEM OF EQUATIONS AND CHECK BOUNDARY CONDITIONS ==========
 
@@ -133,17 +137,18 @@ end
 
 for i = 1:N 
     for j = 1:N 
-        sig_S(i,j) =-S(i,j)*sigma(j); % Creates Matrix of source strenghts multiplied by their influence coefficients for each point
+        sig_S(i,j) = -S(i,j)*sigma(j); % Creates Matrix of source strenghts multiplied by their influence coefficients for each point
     end
 end
 
 RHS = sum(sig_S, 2) %right hand Side of Linear System of Equations
+RHS(N+1) = 0;
 
 % ===== Solve for Doublet Strengths ===== 
 
-mu = RHS\D %solve for doublet strengths
+mu = RHS\D; %solve for doublet strengths
 
-Nuemann_check = sum(sigma(:).*L(:)) %vector contraining the strengths of each panel
+Nuemann_check = sum(sigma(:).*L(:)); %vector contraining the strengths of each panel
 
 %% ========== COMPUTE SURFACE VELOCITY AND AERODYNAMIC LOADS ==========                                                              
 

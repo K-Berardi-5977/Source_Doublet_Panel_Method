@@ -3,7 +3,7 @@ clc;
 clear;
 
 %========== Define Knowns ==========%
-alphaD =9; %angle of attack in degrees
+alphaD =10; %angle of attack in degrees
 alphaR = alphaD*(pi/180); %angle of attack in radians
 U = 1; %free stream velocity magnitude
 U_inf = U*[cos(alphaR); sin(alphaR)] % Free stream velocity vector
@@ -40,9 +40,9 @@ half_x = floor(numPan/2);
 figure; hold on;
 set(gca, 'YDir','reverse')
 plot(XC(1:half_x), Cp(1:half_x), 'b');
-plot(XC(half_x+1:end), Cp(half_x+1:end), 'r');
+plot(XC(half_x:end), Cp(half_x:end), 'r');
 plot(XC(1:half_x), Cp(1:half_x), 'bo')
-plot(XC(half_x+1:end), Cp(half_x+1:end), 'ro');
+plot(XC(half_x:end), Cp(half_x:end), 'ro');
 % plot(x_c, V_s, 'r--');
 title(['Pressure Distribution on Airfoil Surface ($\alpha = ', num2str(alphaD), ')$'], 'Interpreter','latex');
 xlabel('X-Coordinate of Airfoil');
