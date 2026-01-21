@@ -8,7 +8,6 @@ numPan = N-1; % Number of panels
 Xb = foilData(:,1); % Global x-coordinates of grid points
 Yb = foilData(:,2); % Global y-coordinates of grid points
 Yb = flip(Yb); % Flip y-vector to accomodate cw iteration from trailing egde
- 
 
 xc = zeros(numPan,1); % Initialize control points x-coordinate vector
 yc = zeros(numPan,1); % Initialize control points y-coordinate vector

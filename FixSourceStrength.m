@@ -4,7 +4,7 @@ function [sigma, Nuemann_Validation] = FixSourceStrength(U_normal, S)
 %velocity - the function features a validation check that the Nuemann
 %Boundary condition is satisfied
 
-sigma = U_normal; % Set source strength equal to normal velocity at each panel
+sigma = -U_normal; % Set source strength equal to normal velocity at each panel
 
 %Validate that the sum of all source strengths is approximately zero such
 %that no net fluid is added or removed from the flow
