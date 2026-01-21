@@ -2,7 +2,7 @@
 clc
 clear
 %% ========== INPUT PARAMETERS ========= %
-alphaD = 1; % Angle of attack (degrees)
+alphaD = 10; % Angle of attack (degrees)
 alphaR = alphaD*(pi/180); % Angle of attack (radians)
 U = 1; % Free stream velocity magnitude (m/s)
 U_inf = U*[cos(alphaR); sin(alphaR)]; % Free stream velocity vector (m/s)

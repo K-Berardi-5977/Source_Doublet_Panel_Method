@@ -2,7 +2,7 @@
 clc
 clear
 %% ========== INPUT PARAMETERS ========= %
-alphaD = 10; % Angle of attack (degrees)
+alphaD = 0; % Angle of attack (degrees)
 alphaR = alphaD*(pi/180); % Angle of attack (radians)
 U = 1; % Free stream velocity magnitude (m/s)
 U_inf = U*[cos(alphaR); sin(alphaR)]; % Free stream velocity vector (m/s)
@@ -28,8 +28,6 @@ S = hypot(dX, dY); % Compute panel length
 t_hat = ([dX; dY]./S); % Compute panel unit tangent vector
 n_hat = [-t_hat(2,:); t_hat(1,:)]; % Compute panel unit normal vector
 
-
-
 % Generate Control Points in Global Coordinates
 for i = 1:numPan
     xc(i) = 0.5*(Xb(i+1)+Xb(i)); % X-coordinate of control point of ith panel
@@ -45,8 +43,6 @@ U_normal = dot(U_inf, n_hat, 1)';  % Compute the free-stream normal velocity at 
 %% ========== FIX SOURCE STRENGTHS ========== %
 
 sigma = -U_normal; % Set source strength equal to normal velocity at each panel
-
-
 
 %% ========== COMPUTE VELOCITY INFLUENCE COEFFICIENTS ========== %
 
@@ -71,15 +67,14 @@ L = zeros(numPan, numPan); % Doublet normal velocity influence coefficient
 M = zeros(numPan, numPan); % Source normal velocity influence coefficient
 
 % === Compute Velocity Influence Coefficients ===
-
 for i = 1:numPan
     for j = 1:numPan
          Vij = (1/(2*pi)) * [dxc(i,j), dyc(i,j)]/rc2(i,j); % Compute source velocity kernel
-         Qij = (1/(2*pi)) * [-dyc(i,j), dxc(i,j)]/rc2(i,j); % Compute doublet velocity kernel
-        if i == j
-            J(i,j) = 0.5*S(j) ; % Compute doublet tangential self-influence coefficient
+         Qij = (1/(2*pi)) * [2*(dxc(i,j) * dyc(i,j)), (-(dxc(i,j)^2 - dyc(i,j)^2))]/(rc2(i,j)^2); % Compute doublet velocity kernel
+         if i == j
+            J(i,j) = -0.5*S(j) ; % Compute doublet tangential self-influence coefficient
             K(i,j) = 0; % Compute source tangential self-influence coefficient
-            M(i,j) = 0.5*S(j); % Compute source normal self-influence coefficient
+            M(i,j) = -0.5*S(j); % Compute source normal self-influence coefficient
             L(i,j) = 0; % Compute doublet normal self-influence coefficient
         else
            
@@ -91,11 +86,11 @@ for i = 1:numPan
             L(i,j) = S(j) * dot(Qij, n_hat(:,i)); % Compute doublet normal influence coefficient of the ith panel on the jth panel
     end
     end
-end
+    end
 
-%% ========== ENFORCE KUTTA CONDITION ON DOUBLET INFLUENCE COEFFICIENT MATRICES ========== %
+    % ========== ENFORCE KUTTA CONDITION ON DOUBLET INFLUENCE COEFFICIENT MATRICES ========== %
 
-Sw = 50000000*S(1); % Compute wake panel length (currently 3 chord lengths)
+Sw = 5000*S(1); % Compute wake panel length (currently 3 chord lengths)
 Xw1 = Xb(1); % First wake x-coordinate
 Xw2 = Xw1 + Sw*cos(alphaR); % Second wake x-coordinate
 Yw1 = Yb(1); % First wake y-coordinate
@@ -108,7 +103,7 @@ for i = 1:numPan
     dyw = yc(i) - ycw; % Compute y-distance between the ith control point and wake control point
     rw2 = dxw^2 + dyw^2; % Compute the squared distance between the ith contorl point and wake control point
 
-    Qiw = (1/(2*pi)) * [-dyw, dxw] / rw2; % Compute wake doublet velocity kernel
+    Qiw = (1/(2*pi)) * [2*(dxw*dyw), -(dxw^2 - dyw^2)] / (rw2^2); % Compute wake doublet velocity kernel
     L(i, numPan+1) = Sw * dot(Qiw, n_hat(:,i)); % Compute wake doublet normal velocity influence coefficient on the ith panel control point and add to doublet matrix
     J(i, numPan+1) = Sw * dot(Qiw, t_hat(:,i)); % Compute wake doublet tangent velocity influence coefficient on the ith panel control point and add to doublet matrix
 end
@@ -121,8 +116,8 @@ end
 % KuttaRow(numPan+1) = -1; % Fixing value of wake strength
 % L = [L; KuttaRow];
 
-L(:,1) = L(:,1) + L(:,end); % Lower TE normal kutta condition
-L(:,numPan) = L(:,numPan) + L(:,end); % Upper TE normal kutta condition
+L(:,1) = L(:,1) + L(:,numPan+1); % Lower TE normal kutta condition
+L(:,numPan) = L(:,numPan) + L(:,numPan+1); % Upper TE normal kutta condition
 L = L(:,1:numPan); % Eliminate Kutta column from normal velocity influence coefficient matrix
 
 % J(:,1) = J(:,1) - J(:,numPan+1); % Lower TE tangent kutta condition
@@ -136,12 +131,12 @@ P = M*sigma; % Compute source terms by multiplying source strengths by their inf
 
 for i = 1:numPan
     % Create right hand side of matrix equation by subtracting the free-stream and source terms
-            RHS(i,1) = (U_normal(i)+P(i));
+            RHS(i,1) = -(U_normal(i)+P(i));
            
 end
 
 mu = L\RHS; % SOLVE FOR MU
-mu_w = mu(1)-mu(numPan); %Compute wake strength
+mu_w = mu(numPan)-mu(1); %Compute wake strength
 
 %% ========== COMPUTE AERODYNAMIC LOADS ========== %
 Vt_s = K*sigma; % Compute source tangent velocity contribution at each panel
@@ -150,10 +145,8 @@ Vt_w = J_wake * mu_w; % Compute wake tangent velocity contribution at each panel
 VT = zeros(numPan, 1); % Create vector to store panel surface velocities
 Cp = zeros(numPan, 1); % Create vector to store pressure coefficient vallues
 
-for i = 1:numPan
-    VT(i) = U_tangent(i) + Vt_s(i) + Vt_d(i) + Vt_w(i); % Compute total tangent velocity at ith panel
-    Cp(i) = 1-(VT(i)/U)^2; % Compute pressure coefficient of ith panel
-end
+VT = U_tangent + Vt_s + Vt_d + Vt_w;
+Cp = 1-((VT)/U).^2;
 
 %% ========== PLOT RESULTS ========== %
 half_x = floor(numPan/2);
