@@ -3,7 +3,7 @@ function [Cp, VT, Vt_s, Vt_d, Vt_w] = AeroLoads(U, U_tangent, S, sigma, mu, J, J
 % === Compute Singularity Tangent Velocity Terms and Pressure Coefficient === %
 Vt_s = K * sigma; % Compute source tangent velocity contribution at each panel
 Vt_d = J * mu; % Compute doublet tangent velocity contribution at each panel
-Vt_w = Jwake * (mu(1)-mu(numPan));
+Vt_w = Jwake * (mu(numPan)-mu(1));
 VT = zeros(numPan, 1); % Create vector to store panel surface velocities
 Cp = zeros(numPan, 1); % Create vector to store pressure coefficient vallues
 

@@ -2,72 +2,28 @@
 clc
 clear
 %% ========== INPUT PARAMETERS ========= %
-alphaD = 10; % Angle of attack (degrees)
-alphaR = alphaD*(pi/180); % Angle of attack (radians)
-U = 1; % Free stream velocity magnitude (m/s)
-U_inf = U*[cos(alphaR); sin(alphaR)]; % Free stream velocity vector (m/s)
-c = 1; % Chord Length (m) 
+alphaD = 0; % Angle of attack (degrees)
+U = 1; % Free stream velocity magnitude
+c = 1; % Chord Length (m)
+m = 1.48E-5; % kinematic viscosity of air at 15 degrees C
 rho = 1.2; % Air density (kg/ cubic meter)
+Re = (c*U*rho)/m
+
+ExpData1 = load('Cp_Gregory_Oreilly.dat');
+ExpData2 = load('Cp_Ladson.dat')
 
 %% ===== Initialize GEOMETRY ===== %
-load('foilData.dat'); % Load airfoil grid (boundary) points from data file
-N = length(foilData(:,1)); % Number of boundary points
-numPan = N-1; % Number of panels
+Bp = load('foilData.dat'); % Load airfoil grid (boundary) points from data file
 
-Xb = foilData(:,1); % Global x-coordinates of grid points
-Yb = foilData(:,2); % Global y-coordinates of grid points
-Yb = flip(Yb); % Flip y-vector to accomodate cw iteration from trailing egde
-
-xc = zeros(numPan,1); % Initialize control points x-coordinate vector
-yc = zeros(numPan,1); % Initialize control points y-coordinate vector
-
-%% ===== Generate Panel Geometry ===== %
-dX = diff(Xb)'; % Compute panel length x-component 
-dY = diff(Yb)'; % Compute panel length y-component 
-S = hypot(dX, dY); % Compute panel length
-t_hat = ([dX; dY]./S); % Compute panel unit tangent vector
-n_hat = [-t_hat(2,:); t_hat(1,:)]; % Compute panel unit normal vector
-
-% Generate Control Points in Global Coordinates
-for i = 1:numPan
-    xc(i) = 0.5*(Xb(i+1)+Xb(i)); % X-coordinate of control point of ith panel
-    yc(i) = 0.5*(Yb(i+1)+Yb(i)); % Y-coordinate of control point of ith panel
-end
-
-%% ========== CONSTRUCT FREE STREAM NORMAL AND TANGENT VECTORS ========== %
-
-U_inf = repmat(U_inf, 1, numPan); % Generate N-1 (numPan) instances of the free-stream vector to dot with each panel
-U_tangent = dot(U_inf, t_hat, 1)'; % Compute the free-stream tangential velocity at each panel
-U_normal = dot(U_inf, n_hat, 1)';  % Compute the free-stream normal velocity at each panel
-
-%% ========== FIX SOURCE STRENGTHS ========== %
-
-sigma = -U_normal; % Set source strength equal to normal velocity at each panel
-
-%% ========== COMPUTE VELOCITY INFLUENCE COEFFICIENTS ========== %
-
-% === Initialize Temporary Variables === %
-dxc = zeros(numPan, numPan); % Matrix to store x-distance between control points
-dyc = zeros(numPan, numPan); % Matrix to store y-distance between control points
-rc2 = zeros(numPan, numPan); % Matrix to store squared distances between control points
-
-for i = 1:numPan
-    for j = 1:numPan
-        dxc(i,j) = xc(i) - xc(j); % Compute x-distance between jth control point and ith control point
-        dyc(i,j) = yc(i) - yc(j); % Compute y-distance between jth control point and ith control point
-        rc2(i,j) = dxc(i,j)^2 + dyc(i, j)^2; % Compute squared distance between jth control point and ith control point
-    end
-end
-
-
-% === Initialize Influence Coefficient Matrices === %
-J = zeros(numPan, numPan); % Doublet tangent influence coefficient
-K = zeros(numPan, numPan); % Source tangent velocity influence coefficient
-L = zeros(numPan, numPan); % Doublet normal velocity influence coefficient
-M = zeros(numPan, numPan); % Source normal velocity influence coefficient
-
-% === Compute Velocity Influence Coefficients ===
-or i = 1:numPan
-    for j = 1:numPan
-         Vij = (1/(2*pi)) * [dxc(i,j), dyc(i,j)]/rc2(i,j); % Compute source velocity kernel
-         Qij = (1/(2*pi)) * [(dxc(i,j)*dyc(i,j)), -(dxc(i,j)^2 - dyc()]/(rc2(i,j)^); % Compute doublet velocity kernel
+result = Dirichilet_ConstantSourceDoublet(Bp, alphaD, U)
+figure; hold on;
+set(gca, 'YDir','reverse')
+plot(result.X_Cp, result.Cp, '-b')
+plot(ExpData1(:,1), ExpData1(:,2), 'r*')
+plot(ExpData2(:,1), ExpData1(:,2), 'go')
+title(['Pressure Distribution on Airfoil Surface ($\alpha = ', num2str(alphaD), ')$'], 'Interpreter','latex');
+xlabel('X-Coordinate of Airfoil');
+ylabel('Coefficient of Pressure (Cp)');
+legend('Berardi. Re < 1x10^5', 'Control Point')
+axis padded
+hold off

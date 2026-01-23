@@ -4,7 +4,7 @@
 %solution of the matrix equation
 
 function [L, J, Jwake, U_normal] = KuttaCondition(L, J, S, Xb, Yb, xc, yc, alphaR, c, numPan, n_hat, t_hat, U_normal)
-Sw = 100*S(1); % Compute wake panel length (currently 3 chord lengths)
+Sw = 400*S(1); % Compute wake panel length (currently 3 chord lengths)
 Xw1 = Xb(1); % First wake x-coordinate
 Xw2 = Xw1 + Sw*cos(alphaR); % Second wake x-coordinate
 Yw1 = Yb(1); % First wake y-coordinate
@@ -17,7 +17,7 @@ for i = 1:numPan
     dyw = yc(i) - ycw; % Compute y-distance between the ith control point and wake control point
     rw2 = dxw.^2 + dyw.^2; % Compute the squared distance between the ith contorl point and wake control point
 
-    Qiw = (1/(2*pi)) * [-dyw, dxw] / (rw2); % Compute wake doublet velocity kernel
+    Qiw = (1/(2*pi)) * [dyw, -dxw] / (rw2); % Compute wake doublet velocity kernel
     L(i, numPan+1) = Sw * dot(Qiw, n_hat(:,i)); % Compute wake doublet normal velocity influence coefficient on the ith panel control point and add to doublet matrix
     J(i, numPan+1) = Sw * dot(Qiw, t_hat(:,i)); % Compute wake doublet tangent velocity influence coefficient on the ith panel control point and add to doublet matrix
 

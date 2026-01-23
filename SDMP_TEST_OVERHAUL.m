@@ -2,161 +2,28 @@
 clc
 clear
 %% ========== INPUT PARAMETERS ========= %
-alphaD = 0; % Angle of attack (degrees)
-alphaR = alphaD*(pi/180); % Angle of attack (radians)
-U = 1; % Free stream velocity magnitude (m/s)
-U_inf = U*[cos(alphaR); sin(alphaR)]; % Free stream velocity vector (m/s)
-c = 1; % Chord Length (m) 
+alphaD = 10; % Angle of attack (degrees)
+U = 1; % Free stream velocity magnitude
+c = 1; % Chord Length (m)
+m = 1.48E-5; % kinematic viscosity of air at 15 degrees C
 rho = 1.2; % Air density (kg/ cubic meter)
+Re = (c*U*rho)/m
+
+ExpData1 = load('Cp_Gregory_Oreilly.dat');
+ExpData2 = load('Cp_Ladson.dat')
 
 %% ===== Initialize GEOMETRY ===== %
-load('foilData.dat'); % Load airfoil grid (boundary) points from data file
-N = length(foilData(:,1)); % Number of boundary points
-numPan = N-1; % Number of panels
+Bp = load('foilData.dat'); % Load airfoil grid (boundary) points from data file
 
-Xb = foilData(:,1); % Global x-coordinates of grid points
-Yb = foilData(:,2); % Global y-coordinates of grid points
-Yb = flip(Yb); % Flip y-vector to accomodate cw iteration from trailing egde
-
-xc = zeros(numPan,1); % Initialize control points x-coordinate vector
-yc = zeros(numPan,1); % Initialize control points y-coordinate vector
-
-%% ===== Generate Panel Geometry ===== %
-dX = diff(Xb)'; % Compute panel length x-component 
-dY = diff(Yb)'; % Compute panel length y-component 
-S = hypot(dX, dY); % Compute panel length
-t_hat = ([dX; dY]./S); % Compute panel unit tangent vector
-n_hat = [-t_hat(2,:); t_hat(1,:)]; % Compute panel unit normal vector
-
-% Generate Control Points in Global Coordinates
-for i = 1:numPan
-    xc(i) = 0.5*(Xb(i+1)+Xb(i)); % X-coordinate of control point of ith panel
-    yc(i) = 0.5*(Yb(i+1)+Yb(i)); % Y-coordinate of control point of ith panel
-end
-
-%% ========== CONSTRUCT FREE STREAM NORMAL AND TANGENT VECTORS ========== %
-
-U_inf = repmat(U_inf, 1, numPan); % Generate N-1 (numPan) instances of the free-stream vector to dot with each panel
-U_tangent = dot(U_inf, t_hat, 1)'; % Compute the free-stream tangential velocity at each panel
-U_normal = dot(U_inf, n_hat, 1)';  % Compute the free-stream normal velocity at each panel
-
-%% ========== FIX SOURCE STRENGTHS ========== %
-
-sigma = -U_normal; % Set source strength equal to normal velocity at each panel
-
-%% ========== COMPUTE VELOCITY INFLUENCE COEFFICIENTS ========== %
-
-% === Initialize Temporary Variables === %
-dxc = zeros(numPan, numPan); % Matrix to store x-distance between control points
-dyc = zeros(numPan, numPan); % Matrix to store y-distance between control points
-rc2 = zeros(numPan, numPan); % Matrix to store squared distances between control points
-
-for i = 1:numPan
-    for j = 1:numPan
-        dxc(i,j) = xc(i) - xc(j); % Compute x-distance between jth control point and ith control point
-        dyc(i,j) = yc(i) - yc(j); % Compute y-distance between jth control point and ith control point
-        rc2(i,j) = dxc(i,j)^2 + dyc(i, j)^2; % Compute squared distance between jth control point and ith control point
-    end
-end
-
-
-% === Initialize Influence Coefficient Matrices === %
-J = zeros(numPan, numPan); % Doublet tangent influence coefficient
-K = zeros(numPan, numPan); % Source tangent velocity influence coefficient
-L = zeros(numPan, numPan); % Doublet normal velocity influence coefficient
-M = zeros(numPan, numPan); % Source normal velocity influence coefficient
-
-% === Compute Velocity Influence Coefficients ===
-for i = 1:numPan
-    for j = 1:numPan
-         Vij = (1/(2*pi)) * [dxc(i,j), dyc(i,j)]/rc2(i,j); % Compute source velocity kernel
-         Qij = (1/(2*pi)) * [2*(dxc(i,j) * dyc(i,j)), (-(dxc(i,j)^2 - dyc(i,j)^2))]/(rc2(i,j)^2); % Compute doublet velocity kernel
-         if i == j
-            J(i,j) = -0.5*S(j) ; % Compute doublet tangential self-influence coefficient
-            K(i,j) = 0; % Compute source tangential self-influence coefficient
-            M(i,j) = -0.5*S(j); % Compute source normal self-influence coefficient
-            L(i,j) = 0; % Compute doublet normal self-influence coefficient
-        else
-           
-            K(i,j) = S(j) * dot(Vij, t_hat(:,i)); % Compute source tangential influence coefficient of jth panel on the ith panel
-            M(i,j) = S(j) * dot(Vij, n_hat(:,i)); % Compute source normal influence coefficient of jth panel on the ith panel
-
-            
-            J(i,j) = S(j) * dot(Qij, t_hat(:,i)); % Compute doublet tangent influence coefficient of jth panel on the ith panel
-            L(i,j) = S(j) * dot(Qij, n_hat(:,i)); % Compute doublet normal influence coefficient of the ith panel on the jth panel
-    end
-    end
-    end
-
-    % ========== ENFORCE KUTTA CONDITION ON DOUBLET INFLUENCE COEFFICIENT MATRICES ========== %
-
-Sw = 5000*S(1); % Compute wake panel length (currently 3 chord lengths)
-Xw1 = Xb(1); % First wake x-coordinate
-Xw2 = Xw1 + Sw*cos(alphaR); % Second wake x-coordinate
-Yw1 = Yb(1); % First wake y-coordinate
-Yw2 = Yw1 + sin(alphaR); % Second wake y-coordinate
-xcw = 0.5*(Xw1+Xw2); % Compute wake control point x-coordinate
-ycw = 0.5*(Yw1+Yw2); % Compute wake control point y-coordinate
-
-for i = 1:numPan
-    dxw = xc(i) - xcw; % Compute x-distance between the ith control point and wake control point
-    dyw = yc(i) - ycw; % Compute y-distance between the ith control point and wake control point
-    rw2 = dxw^2 + dyw^2; % Compute the squared distance between the ith contorl point and wake control point
-
-    Qiw = (1/(2*pi)) * [2*(dxw*dyw), -(dxw^2 - dyw^2)] / (rw2^2); % Compute wake doublet velocity kernel
-    L(i, numPan+1) = Sw * dot(Qiw, n_hat(:,i)); % Compute wake doublet normal velocity influence coefficient on the ith panel control point and add to doublet matrix
-    J(i, numPan+1) = Sw * dot(Qiw, t_hat(:,i)); % Compute wake doublet tangent velocity influence coefficient on the ith panel control point and add to doublet matrix
-end
-
-
-% === Condition the influence coefficient matrices === %
-% KuttaRow = zeros(1, numPan+1); % Create N+1 row to add to doublet influence coefficient matrix to make system of equations solveable
-% KuttaRow(1) = -1; % Fixing value of lower TE doublet strength
-% KuttaRow(numPan) = 1; % Fixing value of upper TE doublet strength
-% KuttaRow(numPan+1) = -1; % Fixing value of wake strength
-% L = [L; KuttaRow];
-
-L(:,1) = L(:,1) + L(:,numPan+1); % Lower TE normal kutta condition
-L(:,numPan) = L(:,numPan) + L(:,numPan+1); % Upper TE normal kutta condition
-L = L(:,1:numPan); % Eliminate Kutta column from normal velocity influence coefficient matrix
-
-% J(:,1) = J(:,1) - J(:,numPan+1); % Lower TE tangent kutta condition
-% J(:,numPan) = J(:,numPan) + J(:,numPan+1); % Upper TE tangent kutta condition
-J_wake = J(:,numPan+1); % Wake influence separate column
-J = J(:,1:numPan); % Eliminate Kutta column from tangent velocity influence coefficient matrix
-
-%% ========== SOLVE LINEAR SYSTEM OF EQUATIONS FOR DOUBLET STRENGTH VECTOR ========== %
-
-P = M*sigma; % Compute source terms by multiplying source strengths by their influence coefficients 
-
-for i = 1:numPan
-    % Create right hand side of matrix equation by subtracting the free-stream and source terms
-            RHS(i,1) = -(U_normal(i)+P(i));
-           
-end
-
-mu = L\RHS; % SOLVE FOR MU
-mu_w = mu(numPan)-mu(1); %Compute wake strength
-
-%% ========== COMPUTE AERODYNAMIC LOADS ========== %
-Vt_s = K*sigma; % Compute source tangent velocity contribution at each panel
-Vt_d = J* mu; % Compute doublet tangent velocity contribution at each panel
-Vt_w = J_wake * mu_w; % Compute wake tangent velocity contribution at each panel
-VT = zeros(numPan, 1); % Create vector to store panel surface velocities
-Cp = zeros(numPan, 1); % Create vector to store pressure coefficient vallues
-
-VT = U_tangent + Vt_s + Vt_d + Vt_w;
-Cp = 1-((VT)/U).^2;
-
-%% ========== PLOT RESULTS ========== %
-half_x = floor(numPan/2);
+result = Dirichilet_ConstantSourceDoublet(Bp, alphaD, U)
 figure; hold on;
 set(gca, 'YDir','reverse')
-plot(xc(1:half_x), Cp(1:half_x), 'b');
-plot(xc(half_x:end), Cp(half_x:end), 'r');
-plot(xc(1:half_x), Cp(1:half_x), 'bo')
-plot(xc(half_x:end), Cp(half_x:end), 'ro');
+plot(result.X_Cp, result.Cp, '-b')
+plot(ExpData1(:,1), ExpData1(:,2), 'r*')
+plot(ExpData2(:,1), ExpData2(:,2), 'go')
 title(['Pressure Distribution on Airfoil Surface ($\alpha = ', num2str(alphaD), ')$'], 'Interpreter','latex');
 xlabel('X-Coordinate of Airfoil');
 ylabel('Coefficient of Pressure (Cp)');
-legend('Bottom Cp', 'Top Cp');
+legend('Berardi. Re < 1x10^5', 'Gregory, Re = 2.88 \times 10^6','Ladson, Re = 6 \times 10^6' , Location='northeast')
+axis padded
+hold off
