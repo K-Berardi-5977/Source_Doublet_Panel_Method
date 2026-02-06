@@ -29,8 +29,9 @@ Bp = load('foilData.dat'); % Load airfoil grid (boundary) points from data file
 result = Dirichilet_ConstantSourceDoublet(Bp, alphaD, U)
 
 % ===== Plot Results =====
+% READ LABELS ABOVE FIGURE PLOTS
 
-% For alphaD = 10 use this portion and comment out ExpData3 and Figure(2)
+% For alphaD = 10 use this portion and comment out ExpData3 and figure(2)
 figure(1); hold on;
 set(gca, 'YDir','reverse')
 plot(result.X_Cp, result.Cp, '-b')
@@ -43,7 +44,7 @@ legend('Berardi SDPM Code', 'Gregory, Re = 3 \times 10^7', 'Ladson, Re = 6 /time
 axis padded
 hold off
 
-% For alphaD = 5 use this portion and comment out ExpData1, ExpData2, a
+% For alphaD = 5 use this portion and comment out ExpData1, ExpData2, and figure(1)
 figure(2); hold on;
 set(gca, 'YDir','reverse')
 plot(result.X_Cp, result.Cp, '-b')

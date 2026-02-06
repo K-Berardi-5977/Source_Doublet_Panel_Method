@@ -1,3 +1,17 @@
+% This function provides the lift and pressure distribution characteristics
+% for a 2-D airfoil in an inviscid, incompressible, irrotational flow
+
+%{INPUTS}%
+% Bp = (X,Y) Cartesion boundary points of body panels
+% alphaD = angle of attack in degrees
+% U = free-stream velocity magnitude
+
+%{OUTPUTS}%
+% result.mu = vector containin the doublet strength of each panel
+% result.Cp = pressure coefficient at the control point of each panel
+% result.cl = lift coefficient based on circulation and Kelvin's theorem of lift
+% result.X_Cp = control point x-coordinates for pressure coefficient plotting
+
 function result = Dirichilet_ConstantSourceDoublet(Bp, alphaD, U)
 % Pre-Process input variables
 Bp = flipud(Bp); % Force Clockwise Paneling
@@ -117,7 +131,6 @@ result.mu = mu; % Export doublet strength vector
 result.Cp = Cp; % Export Pressure Coefficient
 result.cl = cl; % Export Lift Coefficient
 result.X_Cp = X_Cp; % Export X coordinates of pressure coefficient evaluation points 
-
 
 
 end
