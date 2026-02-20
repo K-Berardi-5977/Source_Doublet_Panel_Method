@@ -52,6 +52,6 @@ plot(ExpData3(:,1), ExpData3(:,2), '^k')
 title(['Pressure Distribution on Airfoil Surface ($\alpha = ', num2str(alphaD), ')$'], 'Interpreter','latex');
 xlabel('X-Coordinate of Airfoil');
 ylabel('Coefficient of Pressure (Cp)');
-legend('Berardi SDPM Code', 'Katz and Plotkin SDPM Code', Location='northeast')
+legend('Berardi SDPM Code', 'Katz and Plotkin SDPM Code', Location = 'northeast')
 axis padded
 hold off
