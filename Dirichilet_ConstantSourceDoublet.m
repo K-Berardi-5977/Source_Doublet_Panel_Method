@@ -1,6 +1,9 @@
 % This function provides the lift and pressure distribution characteristics
 % for a 2-D airfoil in an inviscid, incompressible, irrotational flow
 
+% 2-D Dirichlet panel method: constant-strength sources + constant-strength doublets
+% with a single wake doublet (Kutta enforced at trailing edge (TE))
+
 %{INPUTS}%
 % Bp = (X,Y) Cartesion boundary points of body panels
 % alphaD = angle of attack in degrees
@@ -13,176 +16,42 @@
 % result.X_Cp = control point x-coordinates for pressure coefficient plotting
 
 function result = Dirichilet_ConstantSourceDoublet(Bp, alphaD, U)
-% Pre-Process input variables
-Bp = flipud(Bp); % Force Clockwise Paneling
-alphaR = (pi/180)*alphaD; % Convert angle of attack to radians
 
-% Establish iteration variables
-NN = length(Bp(:,1)); % Number of boundary points ------ % M1
-numPan = NN - 1; % Number of body panels ---- % M
-num_d = NN; % Number of doublets including wake (should be same as number of boundary points for 2-D implementation)  --- %N
-diag_idx = 1:numPan+1:numPan^2; % For overwriting self-influence coefficients (diagonals)
+ %% ===== 1) Preprocess Data =====
+    [Bp, alphaR, NN, numPan, num_d, diag_idx] = preprocess(Bp, alphaD);
 
-% Establish Panel Geometry -- methods based on Program No. 9 from Low Speed Aerodynamics (Katz & Plotkin, 2011)
-dxy = diff(Bp); % Panel x lengths (column 1) and y lengths (column 2)
-th = atan2(dxy(:,2), dxy(:,1)); % Panel angle with respect to positive x-axis
-thj = th(:).';
-dth = th-thj;
-c = cos(dth);
-s = sin(dth);
+    %% ===== 2) Construct Mesh =====
+    mesh = build_panels(Bp, numPan);
 
-% Prescribe Source Strengths
-sigma = U*(cos(alphaR).*sin(th) - sin(alphaR).*cos(th)); % Setting source strength equal to free stream velocity normal component at each panel
+    %% ===== 3) Fix the source strengths on the surface =====
+    sigma = PreSource(U, alphaR, mesh);
 
-% Define vector of control points
-co = 0.5*(Bp(1:numPan,:)+Bp(2:numPan+1,:)); % numPan X 2 vector of control point coordinates
-cx = co(:,1); cz = co(:,2); % x and z coordinates of control points
+    %% ===== 4) Compute Influence Coefficient Matrices =====
+    infl = SDPM_Influence(mesh, numPan, diag_idx);
 
-% Extract panel boundary point vectors for use in coordinate frame rotation
-Bp1 = Bp(1:numPan, :); Bp1_x = Bp1(:,1); Bp1_z = Bp1(:,2); % First boundary point vector, and corresponding x and z points
-Bp2 = Bp(2:numPan+1, :); Bp2_x = Bp2(:,1); Bp2_z = Bp2(:,2); % First boundary point vector, and corresponding x and z points
+    %% ===== 5) Assemble System of Equations and Solve for Doublet Panel Strengths =====
+    sys  = Internal_Dirichlet_Formulation(infl, sigma, mesh, numPan, num_d);
+    mu   = solve_for_doublets(sys);
 
-A = zeros(NN+1, NN+1); % Initialize influence matrix
-Lp = zeros(numPan,1); % Initialize vector of panel lengths
+    %% ===== 6) Postprocess Steps 2-5 to Compute Surface Velocity and Aerodynamic Load Coefficients =====
+    aero = postprocess_aero(mu, sigma, infl, mesh, U, alphaR, numPan, num_d, sys);
+
+    %% ===== 7) Wrap results in Struct =====
+    result = ExportResults(mu, aero, mesh, numPan);
 
 
-% Transform collocation points to local panel coordinates
-Xg = cx - Bp1_x.';
-Zg = cz - Bp1_z.';
+% % Initialize variables
+% phi = cx*cos(alphaR) + cz*sin(alphaR) + mu(1:numPan); % Compute panel potentials
+% Cp2 = zeros(numPan-1, 1); % Initialize Pressure Coefficient Matrix
+% Vt = zeros(numPan-1, 1); % Initialize panel surface velocity vector
+% 
+% % Compute surface velocity using forward difference method
+% dS = (Lp(2:numPan) + Lp(1:numPan-1))/2; % Surface increment
+% dphi = phi(1:numPan-1) - phi(2:numPan); % Potential increment
+% Vt2 = dphi ./ dS; % Surface velocity (surface derivative of potential)
+% Cp2 = 1 - (Vt2./U).^2; % Pressure coefficient (steady, inviscid, incompressible)
+% 
 
-X2g = Bp2_x - Bp1_x;
-Z2g = Bp2_z - Bp1_z;
-
-cos_th = cos(th);
-sin_th = sin(th);
-
-% Perform coordinate rotation
-Xp = Xg .* repmat(cos_th.', numPan,1) + Zg .*repmat(sin_th.', numPan,1);
-Zp = -Xg .*repmat(sin_th.', numPan,1) + Zg .* repmat(cos_th.', numPan,1);
-
-X2p_vec = X2g .* cos_th + Z2g .* sin_th; % numPan × 1
-
-% expand explicitly across rows
-X2p = ones(numPan,1)*X2p_vec.';
-
-% Compute panel lengths
-Lp = X2p_vec(:);
-
-% Distances between boundary points and collocation points (each column is jth panel, each row
-% is ith collocation point)
-r1 = sqrt(Xp.^2 + Zp.^2);
-r2 = sqrt((Xp - X2p).^2 + Zp.^2);
-
-% Angles between boundary points and collocation points (each column is jth panel, each row
-% is ith collocation point)
-thp = atan2(Zp, Xp);
-thp2 = atan2(Zp, Xp - X2p);
-
-% Compute Doublet Potential Influence Coefficient Matrix
-A = -(1/(2*pi))*(thp2 - thp);
-
-% Self influence correction
-A(1:numPan+1:end) = 0.5;
-
-% Compute doublet velocity influence coefficients (in panel coordinates)
-J = (1/(2*pi)).*((Zp./(r1.^2))-(Zp./(r2.^2))); % Surface velocity influence coefficient
-J(diag_idx) = 0; % Doublet surface velocity self influence
-K = -(1/(2*pi)).*((Xp./(r1.^2))-((Xp-X2p)./(r2.^2))); % Normal velocity influence coefficient
-K(diag_idx) = -(1/(2*pi)) * ( (1./Xp(diag_idx)) - (1./(Xp(diag_idx)-X2p(diag_idx))) );
-BtJ = J.*c + K.*s; % Doublet tangent velocity influence in ith frame due to jth panel
-
-% Compute source potential influence coefficient matrix
-SourceInfluence = (1/(2*pi))*( ...
-    Xp .* log(r1) ...
-    - (Xp - X2p) .* log(r2) ...
-    + Zp .* (thp2 - thp) ...
-    );
-
-% Self source correction
-SourceInfluence(diag_idx) = (1/pi)*(Xp(diag_idx).*log(r1(diag_idx)));
-
-% Compute source velocity influence coefficients (in panel coordinates)
-G = (1/(2*pi)).*(log((r1./r2))); % Surface velocity influence coefficient
-G(diag_idx) = (1/(2*pi)).*log(Xp(diag_idx)./(abs(Xp(diag_idx)-X2p(diag_idx))));
-H = (1/(2*pi))*(thp2-thp); % Normal velocity influence coefficient
-H(diag_idx) = -0.5;
-BtG = G.*c + H.*s; % Source tangent velocity influence in ith frame due to jth panel
-
-
-% Multiply by sigma and sum across panels
-RHS = SourceInfluence * sigma;
-
-% Compute distance between wake panel collocation points and body panel
-% collocation points
-xw = cx - Bp2(numPan,1);
-zw = cz - Bp2(numPan,2);
-rw2 = xw.^2 + zw.^2;
-
-
-% Angle between wake panel collocation point and body collocation points
-thw = -atan(zw./xw); % for dirichlet method it works better with - sign
-
-A_full = zeros(numPan+1, numPan+1);
-
-A_full(1:numPan,1:numPan) = A; % Doublet body panel influence coefficients
-A_full(1:numPan,num_d) = -(1/(2*pi))*thw; % Wake panel influence coefficients
-A_full(1:numPan,num_d+1) = RHS; % Source influence (strength x influence coefficient)
-
-% Apply Kutta Condition to trailing edge
-A_full(numPan+1,:) = 0;
-A_full(numPan+1,1) = -1;
-A_full(numPan+1,numPan) = 1;
-A_full(numPan+1,num_d) = -1;
-
-
-% Solve matrix equations for doublet strengths
-
-b = A_full(:, num_d+1); % Isolate source RHS terms
-A = A_full(:, 1:num_d); % Create matrix of only doublet coefficients (including wake)
-
-mu = A\b; % Solve for source strengths
-
-%% ===== Compute Surface Velocity and Aerodynamics Loads =====
-ux_w = (mu(num_d)/(2*pi)).*(zw./rw2);
-uz_w = -(mu(num_d)/(2*pi)).*(xw./rw2);
-Vt_w = ux_w .* cos(th) + uz_w .* sin(th);
-Vt_d = BtJ*mu(1:num_d-1);
-Vt_s = BtG*sigma;
-U_s = U.*cos(th-alphaR);
-mu_b = mu(1:numPan);
-g = zeros(numPan,1);
-g(2:numPan-1) = (mu_b(3:end) - mu_b(1:end-2)) ./ (Lp(2:end-1) + Lp(1:end-2));
-g(1) = (mu_b(2)-mu_b(1))/Lp(1);
-g(end) = (mu_b(end)-mu_b(end-1))/Lp(end);
-
-
-Vt = Vt_d + Vt_w + Vt_s + U_s;
-Vt = Vt + 0.5*g;   % or -0.5*gamma depending on your exterior-side convention
-
-
-% Compute circulation, pressure coefficient, and lift coefficient
-Cp = 1 - (Vt./U).^2; % Pressure coefficient (steady, inviscid, incompressible)
-gamma = -sum(Vt.*Lp(1:numPan)) % Circulation
-cl = 2*gamma; % lift coefficient
-
-
-% Export Results
-X_Cp = Bp2(1:numPan,1); % For plotting x-coordinates
-
-result.mu = mu; % Export doublet strength vector
-result.Cp = Cp; % Export Pressure Coefficient
-result.cl = cl; % Export Lift Coefficient
-result.X_Cp = X_Cp; % Export X coordinates of pressure coefficient evaluation points
 
 end
 
-% Initialize variables
-% phi = cx*cos(alphaR) + cz*sin(alphaR) + mu(1:numPan); % Compute panel potentials
-% Cp = zeros(numPan-1, 1); % Initialize Pressure Coefficient Matrix
-% X_Cp = zeros(numPan-1, 1); % Corresponding Cp x-coordinate
-% Vt = zeros(numPan-1, 1); % Initialize panel surface velocity vector
-
-% Compute surface velocity using forward difference method
-% dS = (Lp(2:numPan) + Lp(1:numPan-1))/2; % Surface increment
-% dphi = phi(1:numPan-1) - phi(2:numPan); % Potential increment
-% Vt = dphi ./ dS; % Surface velocity (surface derivative of potential)

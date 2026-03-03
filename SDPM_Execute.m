@@ -9,10 +9,9 @@
 clc
 clear
 %% ========== INPUT PARAMETERS ========= %
-alphaD = 5; % Angle of attack (degrees)
+alphaD = 10; % Angle of attack (degrees)
 U = 1; % Free stream velocity magnitude
 c = 1; % Chord Length (m)
-m = 1.48E-5; % kinematic viscosity of air at 15 degrees C
 rho = 1.2; % Air density (kg/ cubic meter)
 
 % Cp vs x/c for 10 degree angle of attack
@@ -32,26 +31,28 @@ result = Dirichilet_ConstantSourceDoublet(Bp, alphaD, U);
 % READ LABELS ABOVE FIGURE PLOTS
 
 % For alphaD = 10 use this portion and comment out ExpData3 and figure(2)
-% figure(1); hold on;
-% set(gca, 'YDir','reverse')
-% plot(result.X_Cp, result.Cp, '-b')
-% plot(ExpData1(:,1), ExpData1(:,2), 'r*')
-% plot(ExpData2(:,1), ExpData2(:,2), 'go')
-% title(['Pressure Distribution on Airfoil Surface ($\alpha = ', num2str(alphaD), ')$'], 'Interpreter','latex');
-% xlabel('X-Coordinate of Airfoil');
-% ylabel('Coefficient of Pressure (Cp)');
-% legend('Berardi SDPM Code', 'Gregory, Re = 3 \times 10^7', 'Ladson, Re = 6 /times 10^7', 'Katz & Plotkin SDPM Code', Location='northeast')
-% axis padded
-% hold off
-
-% For alphaD = 5 use this portion and comment out ExpData1, ExpData2, and figure(1)
-figure(2); hold on;
+figure(1); hold on;
 set(gca, 'YDir','reverse')
 plot(result.X_Cp, result.Cp, '-b')
-plot(ExpData3(:,1), ExpData3(:,2), '^k')
+% plot(result.X_Cp(1:end-1), result.Cp2,'*r')
+plot(ExpData1(:,1), ExpData1(:,2), '^k')
+plot(ExpData2(:,1), ExpData2(:,2), 'go')
 title(['Pressure Distribution on Airfoil Surface ($\alpha = ', num2str(alphaD), ')$'], 'Interpreter','latex');
 xlabel('X-Coordinate of Airfoil');
 ylabel('Coefficient of Pressure (Cp)');
-legend('Berardi SDPM Code', 'Katz and Plotkin SDPM Code', Location='northeast')
+legend('SDPM Psuedo Analytical','Gregory, Re = 3 \times 10^7', 'Ladson, Re = 6 /times 10^7', Location='northeast')
 axis padded
 hold off
+
+% For alphaD = 5 use this portion and comment out ExpData1, ExpData2, and figure(1)
+% figure(2); hold on;
+% set(gca, 'YDir','reverse')
+% plot(result.X_Cp, result.Cp, '-b')
+% plot(result.X_Cp(1:end-1), result.Cp2,'*r')
+% plot(ExpData3(:,1), ExpData3(:,2), '^k')
+% title(['Pressure Distribution on Airfoil Surface ($\alpha = ', num2str(alphaD), ')$'], 'Interpreter','latex');
+% xlabel('X-Coordinate of Airfoil');
+% ylabel('Coefficient of Pressure (Cp)');
+% legend('SDPM Psuedo Analytical','SDPM Numerical Diff' , 'Katz and Plotkin Numerical Diff', Location='northeast')
+% axis padded
+% hold off
