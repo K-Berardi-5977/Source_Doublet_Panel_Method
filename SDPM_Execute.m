@@ -9,7 +9,7 @@
 clc
 clear
 %% ========== INPUT PARAMETERS ========= %
-alphaD = 10; % Angle of attack (degrees)
+alphaD = 5; % Angle of attack (degrees)
 U = 1; % Free stream velocity magnitude
 c = 1; % Chord Length (m)
 rho = 1.2; % Air density (kg/ cubic meter)
@@ -19,13 +19,13 @@ ExpData1 = load('Cp_Gregory_Oreilly.dat');
 ExpData2 = load('Cp_Ladson.dat');
 
 % Cp vs x/c for 5 degree angle of attack
-ExpData3 = load('KPData.dat'); % Katz and Plotkin Code -- Cp vs x/c @ aoa = 5
+% ExpData3 = load('KPData.dat'); % Katz and Plotkin Code -- Cp vs x/c @ aoa = 5
 
 %% ===== Initialize GEOMETRY ===== %
 Bp = load('foilData.dat'); % Load airfoil grid (boundary) points from data file
 
 % ===== Perform Computations ===== %
-result = Dirichilet_ConstantSourceDoublet(Bp, alphaD, U);
+result = Dirichilet_ConstantSourceDoublet(Bp, alphaD, U, c);
 
 % ===== Plot Results =====
 % READ LABELS ABOVE FIGURE PLOTS

@@ -14,7 +14,7 @@
 % infl.X2p  = X2p; % Distance between boundary points of observer panel in observer panel coordinates
 % infl.Lp   = Lp; % Panel lengths
 
-function inflBB = SDPM_Influence(mesh, wake, numPan, diag_idx)
+function infl = SDPM_Influence(mesh, wake, numPan, diag_idx)
 
 % Transform collocation points to local panel coordinates
 Xg = mesh.cx - mesh.Bp1_x.'; % (numPan x numPan)
@@ -82,15 +82,15 @@ BtG = G.*mesh.c + H.*mesh.s;
 % ===== Package influence coefficients and any necessary geometry updates into struct =====
 
 % Influence coefficient exports
-inflBB.A               = A;
-inflBB.BtJ             = BtJ;
-inflBB.SourceInfluence = SourceInfluence;
-inflBB.BtG             = BtG;
+infl.A               = A;
+infl.BtJ             = BtJ;
+infl.SourceInfluence = SourceInfluence;
+infl.BtG             = BtG;
 
 % Geometry exports
-inflBB.Xp   = Xp;
-inflBB.Zp   = Zp;
-inflBB.X2p  = X2p;
-inflBB.Lp   = Lp;
+infl.Xp   = Xp;
+infl.Zp   = Zp;
+infl.X2p  = X2p;
+infl.Lp   = Lp;
 end
 

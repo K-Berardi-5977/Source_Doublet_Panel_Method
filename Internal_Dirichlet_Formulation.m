@@ -1,5 +1,6 @@
 % === INPUTS ===
-% infl - struct containing influence coefficient data and local panel geometry
+% inflBB - struct containing influence coefficient data and local panel geometry for body panels
+% inflBW - influence of wake panels on body panel collocation points
 % sigma - body panel source strengths (numPan x 1)
 % mesh - struct containing panel geometry data 
 % numPan - number of body panels
@@ -13,10 +14,10 @@
 % sys.rw - wake distance from body collocation points
 
 
-function sys = Internal_Dirichlet_Formulation(infl, sigma, mesh, numPan, num_d)
+function sys = Internal_Dirichlet_Formulation(inflBB, inflBW, sigma, mesh, numPan, num_d)
 
 % Construct right-hand-side source terms
-RHS = infl.SourceInfluence * sigma;
+RHS = inflBB.SourceInfluence * sigma;
 
 % Compute distance between wake panel collocation points and body panel
 % collocation points
@@ -28,8 +29,8 @@ thw = -atan(zw./xw); % Angle between wake and receiver panel
 % Create A_full to store matrix eqn data
 A_full = zeros(numPan+1, numPan+1);
 
-A_full(1:numPan,1:numPan) = infl.A; % Doublet body panel influence coefficients
-A_full(1:numPan,num_d) = -(1/(2*pi))*thw; % Wake panel influence coefficients
+A_full(1:numPan,1:numPan) = inflBB.A; % Doublet body panel influence coefficients
+A_full(1:numPan,num_d) = sum(inflBW.A, 2); % Wake panel influence coefficients
 A_full(1:numPan,num_d+1) = RHS; % Source influence (strength x influence coefficient)
 
 % Apply Kutta Condition to trailing edge

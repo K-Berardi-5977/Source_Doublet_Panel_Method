@@ -42,8 +42,8 @@ function result = Dirichilet_ConstantSourceDoublet(Bp, alphaD, U, c)
 
     %% ===== 9) Wrap results in Struct =====
     result = ExportResults(mu, aero, mesh, numPan);
-    
-   
+
+
 % % Initialize variables
 % phi = cx*cos(alphaR) + cz*sin(alphaR) + mu(1:numPan); % Compute panel potentials
 % Cp2 = zeros(numPan-1, 1); % Initialize Pressure Coefficient Matrix
