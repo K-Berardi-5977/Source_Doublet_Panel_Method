@@ -30,31 +30,22 @@ function result = Dirichilet_ConstantSourceDoublet(Bp, alphaD, U, c)
     sigma = PreSource(U, alphaR, mesh);
 
     %% ===== 5) Compute Influence Coefficient Matrices =====
-    inflBB = SDPM_Influence(mesh, wake, numPan, diag_idx);
-    inflBW = SDPM_Influence_BodyWake(mesh, wake)
+    inflBB = SDPM_Influence(mesh, wake, numPan, diag_idx); % Influence coefficients for body panels
+    inflBW = SDPM_Influence_BodyWake(mesh, wake); % Influence coefficients of wake panels
 
     %% ===== 6) Assemble System of Equations and Solve for Doublet Panel Strengths =====
     sys  = Internal_Dirichlet_Formulation(inflBB, inflBW, sigma, mesh, numPan, num_d);
     mu   = solve_for_doublets(sys);
 
     %% ===== 7) Postprocess Steps 2-5 to Compute Surface Velocity and Aerodynamic Load Coefficients =====
-    aero = postprocess_aero(mu, sigma, inflBB, mesh, U, alphaR, numPan, num_d, sys);
+    aero = postprocess_aero(mu, sigma, inflBB, inflBW, mesh, U, alphaR, numPan, num_d, sys);
 
     %% ===== 9) Wrap results in Struct =====
     result = ExportResults(mu, aero, mesh, numPan);
+  
     
    
-% % Initialize variables
-% phi = cx*cos(alphaR) + cz*sin(alphaR) + mu(1:numPan); % Compute panel potentials
-% Cp2 = zeros(numPan-1, 1); % Initialize Pressure Coefficient Matrix
-% Vt = zeros(numPan-1, 1); % Initialize panel surface velocity vector
-% 
-% % Compute surface velocity using forward difference method
-% dS = (Lp(2:numPan) + Lp(1:numPan-1))/2; % Surface increment
-% dphi = phi(1:numPan-1) - phi(2:numPan); % Potential increment
-% Vt2 = dphi ./ dS; % Surface velocity (surface derivative of potential)
-% Cp2 = 1 - (Vt2./U).^2; % Pressure coefficient (steady, inviscid, incompressible)
-% 
+
 
 
 end

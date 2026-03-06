@@ -19,14 +19,13 @@ ExpData1 = load('Cp_Gregory_Oreilly.dat');
 ExpData2 = load('Cp_Ladson.dat');
 
 % Cp vs x/c for 5 degree angle of attack
-ExpData3 = load('KPData.dat'); % Katz and Plotkin Code -- Cp vs x/c @ aoa = 5
+% ExpData3 = load('KPData.dat'); % Katz and Plotkin Code -- Cp vs x/c @ aoa = 5
 
 %% ===== Initialize GEOMETRY ===== %
 Bp = load('foilData.dat'); % Load airfoil grid (boundary) points from data file
 
 % ===== Perform Computations ===== %
 result = Dirichilet_ConstantSourceDoublet(Bp, alphaD, U, c);
-result_archive = Dirichilet_ConstantSourceDoublet_SemiInfWake_Archive(Bp, alphaD, U)
 
 % ===== Plot Results =====
 % READ LABELS ABOVE FIGURE PLOTS
@@ -35,14 +34,13 @@ result_archive = Dirichilet_ConstantSourceDoublet_SemiInfWake_Archive(Bp, alphaD
 % figure(1); hold on;
 % set(gca, 'YDir','reverse')
 % plot(result.X_Cp, result.Cp, '-b')
-% plot(result_archive.X_Cp, result_archive.Cp,'*r')
+% % plot(result.X_Cp(1:end-1), result.Cp2,'*r')
 % plot(ExpData1(:,1), ExpData1(:,2), '^k')
 % plot(ExpData2(:,1), ExpData2(:,2), 'go')
-% title(['Pressure Distribution on Airfoil Surface (\alpha = ', num2str(alphaD), ')']);
+% title(['Pressure Distribution on Airfoil Surface ($\alpha = ', num2str(alphaD), ')$'], 'Interpreter','latex');
 % xlabel('X-Coordinate of Airfoil');
 % ylabel('Coefficient of Pressure (Cp)');
-% legend('Beardi Discrete Wake','Berardi Semi-Infinite Wake','Gregory, Re = 3 \times 10^7', 'Ladson, Re = 6 \times 10^7', Location='northeast')
-% setaxes
+% legend('SDPM Psuedo Analytical','Gregory, Re = 3 \times 10^7', 'Ladson, Re = 6 /times 10^7', Location='northeast')
 % axis padded
 % hold off
 
@@ -50,12 +48,11 @@ result_archive = Dirichilet_ConstantSourceDoublet_SemiInfWake_Archive(Bp, alphaD
 figure(2); hold on;
 set(gca, 'YDir','reverse')
 plot(result.X_Cp, result.Cp, '-b')
-plot(result_archive.X_Cp, result_archive.Cp, '*r')
+plot(result.X_Cp(1:end-1), result.Cp2,'*r')
 plot(ExpData3(:,1), ExpData3(:,2), '^k')
-title(['Pressure Distribution on Airfoil Surface (\alpha = ', num2str(alphaD), ')']);
+title(['Pressure Distribution on Airfoil Surface ($\alpha = ', num2str(alphaD), ')$'], 'Interpreter','latex');
 xlabel('X-Coordinate of Airfoil');
 ylabel('Coefficient of Pressure (Cp)');
-legend('Beardi Discrete Wake','Berardi Semi-Infinite Wake', 'Katz and Plotkin Numerical Diff', Location='northeast')
+legend('SDPM Psuedo Analytical','SDPM Numerical Diff' , 'Katz and Plotkin Numerical Diff', Location='northeast')
 axis padded
-setaxes
 hold off

@@ -21,8 +21,7 @@ NN     = size(Bp, 1);            % Number of panel boundary points
 numPan = NN - 1;                 % Nnumber of body panels
 num_d  = NN;                     % Number of doublet panels (body + wake)
 
-% Define wake panel overlying characteristis (WILL EVENTUALLY BE USER
-% INPUT)
+% Define wake panel overlying characteristis (WILL EVENTUALLY BE USER INPU
 Nw = 40; % Number of wake panels
 Lw = 5*c; %Length of total wake
 
