@@ -7,14 +7,15 @@
 % num_d - number of doublets (body + wake)
 % sys - struct containing matrix that entirely defines the zero internal perturbation potential Dirichlet condition matrix equations 
 
-function aero = postprocess_aero(mu, sigma, inflBB, inflBWmesh, U, alphaR, numPan, num_d, sys)
+function aero = postprocess_aero(mu, sigma, inflBB, inflBW, mesh, U, alphaR, numPan, num_d, sys, rho)
+%% ===== Circulation Based Aerodynamic Loads =====
+
+% Establish quarter-chord reference point for computation of moment
+x_ref = 0.25;  
+z_ref = 0.0;
+
 % Compute wake induced surface velocity in receiver panel coordinate frame
-
-% ux_w = (mu(num_d)/(2*pi)).*(sys.zw./sys.rw2);
-% uz_w = -(mu(num_d)/(2*pi)).*(sys.xw./sys.rw2);
-% Vt_w = ux_w .* cos(mesh.th) + uz_w .* sin(mesh.th);
-
-Vt_w
+Vt_w = sum(inflBW.BtJ, 2)*mu(num_d)
 
 % Compute body doublet contribution to surface velocity
 Vt_d = inflBB.BtJ * mu(1:num_d-1);
@@ -27,14 +28,14 @@ U_s  = U .* cos(mesh.th - alphaR);
 
 % Numerical differentiation correction term
 mu_b = mu(1:numPan); % Isolate body doublets
-g = zeros(numPan,1); % Vector to store jump terms
-g(2:numPan-1) = (mu_b(3:end) - mu_b(1:end-2)) ./ (inflBB.Lp(2:end-1) + inflBB.Lp(1:end-2));
-g(1) = (mu_b(2)-mu_b(1))/inflBB.Lp(1);
-g(end) = (mu_b(end)-mu_b(end-1))/inflBB.Lp(end);
+dmu_dx = zeros(numPan,1); % Vector to store jump terms
+dmu_dx(2:numPan-1) = (mu_b(3:end) - mu_b(1:end-2)) ./ (inflBB.Lp(2:end-1) + inflBB.Lp(1:end-2));
+dmu_dx(1) = (mu_b(2)-mu_b(1))/inflBB.Lp(1);
+dmu_dx(end) = (mu_b(end)-mu_b(end-1))/inflBB.Lp(end);
 
 % Compute surface velocity
 % Total tangential velocity
-Vt = Vt_d + Vt_w + Vt_s + U_s + 0.5*g;
+Vt = Vt_d + Vt_w + Vt_s + U_s + 0.5*dmu_dx;
 
 % Pressure coefficient
 Cp = 1 - (Vt./U).^2;
@@ -43,9 +44,53 @@ Cp = 1 - (Vt./U).^2;
 gamma = sum(Vt .* inflBB.Lp(1:numPan));
 cl    = 2*gamma;
 
-% Package velocity, circulation, and aerodynamic load data
+% Package velocity, circulation, and aerodynamic non-dimensional coefficient data
 aero.Vt    = Vt;
 aero.Cp    = Cp;
 aero.gamma = gamma;
 aero.cl    = cl;
+
+%% ===== Pressure force integration aerodynamic loads =====
+
+% Dynamic pressure of free-stream
+q = 0.5 * rho * U^2;
+
+% Panel lengths
+ds = inflBB.Lp(1:numPan);
+
+% Outward unit normal for clockwise panel ordering
+nx =  sin(mesh.th);
+nz = -cos(mesh.th);
+n = [nx, nz]; % Unit normal vector for each panel
+
+% Pressure force on each panel (per unit span)
+dFx = -q .* Cp .* nx .* ds;
+dFz = -q .* Cp .* nz .* ds;
+
+% Total force components in global x-z coordinates
+Fx = sum(dFx);
+Fz = sum(dFz);
+
+% Resolve into drag and lift relative to freestream direction
+D =  Fx*cos(alphaR) + Fz*sin(alphaR);
+L = -Fx*sin(alphaR) + Fz*cos(alphaR);
+
+% ----------------------------------------
+% Moment about reference point (per unit span)
+% ----------------------------------------
+rx = mesh.cx - x_ref;
+rz = mesh.cz - z_ref;
+
+dM = rx .* dFz - rz .* dFx;
+M  = sum(dM);
+
+% Package force and moment data
+aero.dFx = dFx;
+aero.dFz = dFz;
+aero.Fx = Fx;
+aero.Fz = Fz;
+aero.D = D;
+aero.L = L;
+aero.M = M;
+
 end

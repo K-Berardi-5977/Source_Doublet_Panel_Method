@@ -7,4 +7,5 @@ function result = ExportResults(mu, aero, mesh, numPan)
     result.Cp   = aero.Cp;
     result.cl   = aero.cl;
     result.X_Cp = X_Cp;
+    result.aero = aero;
 end

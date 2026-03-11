@@ -12,7 +12,7 @@ clear
 alphaD = 5; % Angle of attack (degrees)
 U = 1; % Free stream velocity magnitude
 c = 1; % Chord Length (m)
-rho = 1.2; % Air density (kg/ cubic meter)
+rho = 1.225; % Air density (kg/ cubic meter)
 
 % Cp vs x/c for 10 degree angle of attack
 ExpData1 = load('Cp_Gregory_Oreilly.dat');
@@ -23,9 +23,10 @@ ExpData3 = load('KPData.dat'); % Katz and Plotkin Code -- Cp vs x/c @ aoa = 5
 
 %% ===== Initialize GEOMETRY ===== %
 Bp = load('foilData.dat'); % Load airfoil grid (boundary) points from data file
+[Bp, Nw] = call_naca4;
 
 % ===== Perform Computations ===== %
-result = Dirichilet_ConstantSourceDoublet(Bp, alphaD, U, c);
+result = Dirichilet_ConstantSourceDoublet(Bp, Nw, alphaD, U, c, rho);
 result_archive = Dirichilet_ConstantSourceDoublet_SemiInfWake_Archive(Bp, alphaD, U)
 
 % ===== Plot Results =====
@@ -59,3 +60,4 @@ legend('Beardi Discrete Wake','Berardi Semi-Infinite Wake', 'Katz and Plotkin Nu
 axis padded
 setaxes
 hold off
+

@@ -9,23 +9,24 @@
 clc
 clear
 %% ========== INPUT PARAMETERS ========= %
-alphaD = 5; % Angle of attack (degrees)
+alphaD = 6; % Angle of attack (degrees)
 U = 1; % Free stream velocity magnitude
 c = 1; % Chord Length (m)
-rho = 1.2; % Air density (kg/ cubic meter)
+rho = 1.225; % Air density (kg/ cubic meter)
 
 % Cp vs x/c for 10 degree angle of attack
 ExpData1 = load('Cp_Gregory_Oreilly.dat');
 ExpData2 = load('Cp_Ladson.dat');
 
 % Cp vs x/c for 5 degree angle of attack
-% ExpData3 = load('KPData.dat'); % Katz and Plotkin Code -- Cp vs x/c @ aoa = 5
+ExpData3 = load('KPData.dat'); % Katz and Plotkin Code -- Cp vs x/c @ aoa = 5
 
 %% ===== Initialize GEOMETRY ===== %
 Bp = load('foilData.dat'); % Load airfoil grid (boundary) points from data file
 
 % ===== Perform Computations ===== %
-result = Dirichilet_ConstantSourceDoublet(Bp, alphaD, U, c);
+result = Dirichilet_ConstantSourceDoublet(Bp, alphaD, U, c, rho);
+result_archive = Dirichilet_ConstantSourceDoublet_SemiInfWake_Archive(Bp, alphaD, U)
 
 % ===== Plot Results =====
 % READ LABELS ABOVE FIGURE PLOTS
@@ -34,13 +35,14 @@ result = Dirichilet_ConstantSourceDoublet(Bp, alphaD, U, c);
 % figure(1); hold on;
 % set(gca, 'YDir','reverse')
 % plot(result.X_Cp, result.Cp, '-b')
-% % plot(result.X_Cp(1:end-1), result.Cp2,'*r')
+% plot(result_archive.X_Cp, result_archive.Cp,'*r')
 % plot(ExpData1(:,1), ExpData1(:,2), '^k')
 % plot(ExpData2(:,1), ExpData2(:,2), 'go')
-% title(['Pressure Distribution on Airfoil Surface ($\alpha = ', num2str(alphaD), ')$'], 'Interpreter','latex');
+% title(['Pressure Distribution on Airfoil Surface (\alpha = ', num2str(alphaD), ')']);
 % xlabel('X-Coordinate of Airfoil');
 % ylabel('Coefficient of Pressure (Cp)');
-% legend('SDPM Psuedo Analytical','Gregory, Re = 3 \times 10^7', 'Ladson, Re = 6 /times 10^7', Location='northeast')
+% legend('Beardi Discrete Wake','Berardi Semi-Infinite Wake','Gregory, Re = 3 \times 10^7', 'Ladson, Re = 6 \times 10^7', Location='northeast')
+% setaxes
 % axis padded
 % hold off
 
@@ -48,11 +50,19 @@ result = Dirichilet_ConstantSourceDoublet(Bp, alphaD, U, c);
 figure(2); hold on;
 set(gca, 'YDir','reverse')
 plot(result.X_Cp, result.Cp, '-b')
-plot(result.X_Cp(1:end-1), result.Cp2,'*r')
+plot(result_archive.X_Cp, result_archive.Cp, '*r')
 plot(ExpData3(:,1), ExpData3(:,2), '^k')
-title(['Pressure Distribution on Airfoil Surface ($\alpha = ', num2str(alphaD), ')$'], 'Interpreter','latex');
+title(['Pressure Distribution on Airfoil Surface (\alpha = ', num2str(alphaD), ')']);
 xlabel('X-Coordinate of Airfoil');
 ylabel('Coefficient of Pressure (Cp)');
-legend('SDPM Psuedo Analytical','SDPM Numerical Diff' , 'Katz and Plotkin Numerical Diff', Location='northeast')
+legend('Beardi Discrete Wake','Berardi Semi-Infinite Wake', 'Katz and Plotkin Numerical Diff', Location='northeast')
 axis padded
+setaxes
+hold off
+
+figure(3); hold on;
+plot(result.X_Cp, result.aero.dFz)
+plot(result.X_Cp, result.aero.dFx)
+axis padded
+setaxes
 hold off

@@ -15,10 +15,10 @@
 % result.cl = lift coefficient based on circulation and Kelvin's theorem of lift
 % result.X_Cp = control point x-coordinates for pressure coefficient plotting
 
-function result = Dirichilet_ConstantSourceDoublet(Bp, alphaD, U, c)
+function result = Dirichilet_ConstantSourceDoublet(Bp, Nw, alphaD, U, c, rho)
 
  %% ===== 1) Preprocess Data =====
-    [Bp, alphaR, NN, numPan, num_d, diag_idx, Nw, Lw] = preprocess(Bp, alphaD, c);
+    [Bp, alphaR, NN, numPan, num_d, diag_idx, Lw] = preprocess(Bp, alphaD, c);
 
     %% ===== 2) Construct Body Mesh =====
     mesh = build_panels(Bp, numPan);
@@ -38,7 +38,7 @@ function result = Dirichilet_ConstantSourceDoublet(Bp, alphaD, U, c)
     mu   = solve_for_doublets(sys);
 
     %% ===== 7) Postprocess Steps 2-5 to Compute Surface Velocity and Aerodynamic Load Coefficients =====
-    aero = postprocess_aero(mu, sigma, inflBB, inflBW, mesh, U, alphaR, numPan, num_d, sys);
+    aero = postprocess_aero(mu, sigma, inflBB, inflBW, mesh, U, alphaR, numPan, num_d, sys, rho);
 
     %% ===== 9) Wrap results in Struct =====
     result = ExportResults(mu, aero, mesh, numPan);

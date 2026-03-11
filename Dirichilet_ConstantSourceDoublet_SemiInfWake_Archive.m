@@ -14,7 +14,7 @@
 
 function result = Dirichilet_ConstantSourceDoublet_SemiInfWake_Archive(Bp, alphaD, U)
 % Pre-Process input variables
-Bp = flipud(Bp); % Force Clockwise Paneling
+% Bp = flipud(Bp); % Force Clockwise Paneling
 alphaR = (pi/180)*alphaD; % Convert angle of attack to radians
 
 % Establish iteration variables

@@ -24,10 +24,11 @@ end
 
 figure(3); hold on;
 plot(alphaD, cl, '-b') % Plot numerical data from code
+plot(alphaD, cl2, '*r')
 xlabel('\alpha');
 ylabel('Coefficient of Lift (c_l)');
 plot(aoa_data(:,1), aoa_data(:,2), '*r') % Plot experimental data
-title('Coefficient of Lift vs Angle of Attack for NACA 4412 Airfoil');
+title('Coefficient of Lift vs Angle of Attack');
 legend('Berardi Discrete Wake','Xfoil Results, Re = 5 \times 10^4', Location='northwest');
 axis padded
 setaxes
