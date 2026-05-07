@@ -32,18 +32,18 @@ function inflBW = SDPM_Influence_BodyWake(mesh, wake)
     X2p = ones(numPan,1) * X2p_vec.';                    % (numPan x Nw)
 
     % --- Constant-strength doublet integrals in wake-local coords ---
-    r1  = sqrt(Xp.^2 + Zp.^2);
-    r2  = sqrt((Xp - X2p).^2 + Zp.^2);
+    rw1  = sqrt(Xp.^2 + Zp.^2);
+    rw2  = sqrt((Xp - X2p).^2 + Zp.^2);
 
-    thp  = atan2(Zp, Xp);
-    thp2 = atan2(Zp, Xp - X2p);
+    thpw  = atan2(Zp, Xp);
+    thpw2 = atan2(Zp, Xp - X2p);
 
     % Doublet potential influence
-    A = -(1/(2*pi)) * (thp2 - thp);                      % (numPan x Nw)
+    A = -(1/(2*pi)) * (thpw2 - thpw);                      % (numPan x Nw)
 
     % Velocity influence in wake-local coordinates
-    J = (1/(2*pi)) .* ( (Zp./(r1.^2)) - (Zp./(r2.^2)) ); % tangential (wake-local)
-    K = -(1/(2*pi)) .* ( (Xp./(r1.^2)) - ((Xp - X2p)./(r2.^2)) ); % normal (wake-local)
+    J = (1/(2*pi)) .* ( (Zp./(rw1.^2)) - (Zp./(rw2.^2)) ); % tangential (wake-local)
+    K = -(1/(2*pi)) .* ( (Xp./(rw1.^2)) - ((Xp - X2p)./(rw2.^2)) ); % normal (wake-local)
 
     % --- Rotate induced velocity into body-panel coordinates ---
     % Need cos/sin of (theta_body - theta_wake)

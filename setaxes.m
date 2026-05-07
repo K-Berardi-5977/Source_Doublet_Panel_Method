@@ -5,7 +5,7 @@ function setaxes
 ax = gca;
 
 % --- Font settings ---
-scale = 1.2;
+scale = 1.5;
 baseFont = ax.FontSize;
 
 ax.FontName = 'Times New Roman';

@@ -53,6 +53,18 @@ function mesh = build_panels(Bp, numPan)
     mesh.cz = co(:,2);                           % Collocation point z coordinates (numPan x 1)
    
 
+
+figure(5);hold on
+axis equal
+plot(mesh.Bp(:,1), mesh.Bp(:,2), '-b', LineWidth=1.5,  Handlevisibility = 'off')
+% plot(mesh.Bp(:,1), mesh.Bp(:,2), 'ok', MarkerFaceColor='k')
+% plot(mesh.co(:,1), mesh.co(:,2), 'or', MarkerFaceColor='r')
+% legend('Boundary Points', 'Control Points')
+% legend('Panel Boundary Points')
+title('NACA 0012 Airfoil');
+% setaxes
+axis padded
+hold off
 end
 
 
