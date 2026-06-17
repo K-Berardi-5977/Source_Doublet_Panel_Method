@@ -10,7 +10,7 @@ U = 1; % Free stream velocity magnitude
 c =1;
 rho = 1.225;
 
-cm_data = load('xfoil_alpha_cm_4412.dat')
+cm_data = load('AbbVD_CMData.dat')
 [Bp, Nw] = call_naca4; % Load airfoil grid (boundary) points from data file
 cl = zeros(length(alphaD),1); % Initialize lift coefficient vector
 cm = zeros(length(alphaD),1);
@@ -24,19 +24,19 @@ cm(N) = result.aero.cm;
 cl2(N) = result_archive.cl
 end
 
-figure(3); hold on;
-plot(alphaD, cl, 'ob') % Plot numerical data from code
-% plot(alphaD, cl2, '*r') % Plot numerical data from code
-% xlabel('\alpha');
-% ylabel('Coefficient of Lift (c_l)');
-plot(aoa_data(:,1), aoa_data(:,2), '^k') % Plot experimental data
-
-% title('Coefficient of Lift vs Angle of Attack for NACA 0012 Airfoil');
-legend('Berardi SDPM Code', 'Abbott & von Doenhoff, Re = 6 \times 10^6', Location='northwest');
-axis padded
-plot(alphaD, cl, '-b', LineWidth=0.75, HandleVisibility='off') % Plot numerical data from code
-setaxes
-hold off
+% figure(3); hold on;
+% plot(alphaD, cl, 'ob') % Plot numerical data from code
+% % plot(alphaD, cl2, '*r') % Plot numerical data from code
+% % xlabel('\alpha');
+% % ylabel('Coefficient of Lift (c_l)');
+% plot(aoa_data(:,1), aoa_data(:,2), '^k') % Plot experimental data
+% 
+% % title('Coefficient of Lift vs Angle of Attack for NACA 0012 Airfoil');
+% legend('Berardi SDPM Code', 'Abbott & von Doenhoff, Re = 6 \times 10^6', Location='northwest');
+% axis padded
+% plot(alphaD, cl, '-b', LineWidth=0.75, HandleVisibility='off') % Plot numerical data from code
+% setaxes
+% hold off
 
 % figure(4); hold on;
 % plot(alphaD, cl, 'ob') % Plot numerical data from code
@@ -48,12 +48,13 @@ hold off
 % axis padded
 % setaxes
 % hold off
-% figure(4); hold on;
-% plot(alphaD, cm, '-b') % Plot numerical data from code
-% plot(cm_data(:,1),cm_data(:,2), '^k');
-% ylabel('Coefficient of Moment (c_m)');
-% title('Moment vs Angle of Attack ');
-% legend('Berardi Discrete Wake', 'Xfoil Results, Re = 5 \times 10^4', Location='northwest');
-% axis padded
-% setaxes
-% hold off
+figure(4); hold on;
+plot(alphaD, cm, '-b') % Plot numerical data from code
+plot(cm_data(:,1),cm_data(:,2), '^k');
+ylabel('Coefficient of Moment (c_(m,c/4)');
+xlabel('\alpha (degrees)')
+title('NACA 0012 Moment Coefficient vs Angle of Attack ');
+legend('Berardi Discrete Wake', 'Abbot & Von Doenhoff, Re = 3 \times 10^6', Location='northwest');
+setaxes
+ylim([-1e-1 1e-1])
+hold off
