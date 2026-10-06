@@ -1,0 +1,11 @@
+% ===== SOURCE-DOUBLET PANEL METHOD EXECUTION / VALIDATION SCRIPT ===== %
+% This script defines a CASE, calls the steady SDPM solver, and performs
+% case-specific plotting / comparison against experimental data.
+%
+% CHANGED:
+%   - All solver inputs now live in cfg.
+%   - Bypass interactive prompt with default configuratin
+%   - Plotting remains here rather than inside geometry/solver functions.
+clc; clear; 
+
+choice = 
